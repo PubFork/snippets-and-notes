@@ -1,0 +1,68 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ansible-agent
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       Init script for ansible-agent
+### END INIT INFO
+
+SCRIPT=/usr/bin/ansible-agent
+RUNAS=root
+
+PIDFILE=/var/run/ansible-agent.pid
+LOGFILE=/var/log/ansible-agent.log
+
+start() {
+  if [ -f /var/run/$PIDNAME ] && kill -0 $(cat /var/run/$PIDNAME); then
+    echo 'ansible-agent already running' >&2
+    return 1
+  fi
+  echo 'Starting ansible-agent...' >&2
+  local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  su -c "$CMD" $RUNAS > "$PIDFILE"
+  echo 'ansible-agent started' >&2
+}
+
+stop() {
+  if [ ! -f "$PIDFILE" ] || ! kill -0 $(cat "$PIDFILE"); then
+    echo 'ansible-agent not running' >&2
+    return 1
+  fi
+  echo 'Stopping ansible-agent...' >&2
+  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  echo 'ansible-agent stopped' >&2
+}
+
+status() {
+  printf "%-50s" "Checking ansible-agent..."
+  if [ -f $PIDFILE ]; then
+    PID=`cat $PIDFILE`
+    if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+      printf "%s\n" "Process dead but pidfile exists"
+    else
+      echo "Running"
+    fi
+  else
+    printf "%s\n" "ansible-agent not running"
+  fi
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status
+    ;;
+  retart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+esac

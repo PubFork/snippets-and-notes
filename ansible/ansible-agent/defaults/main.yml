@@ -1,0 +1,15 @@
+---
+tower_interface: api
+tower_api: 2
+tower_url: https://localhost
+tower_call: callback
+tower_cert: true
+#host config key
+#password
+python_version: 3
+service_provider: systemd
+interval: 3600
+job_template_id: 0
+host_config_key: abcdefg1234
+username: admin
+password: password

@@ -1,0 +1,11 @@
+---
+# handlers file for ansible-agent
+- name: restart ansible-agent
+  service:
+    name: ansible-agent
+    state: restarted
+
+- name: reload ansible-agent
+  service:
+    name: ansible-agent
+    state: reloaded

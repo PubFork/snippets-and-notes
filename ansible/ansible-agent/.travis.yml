@@ -1,0 +1,29 @@
+---
+dist: trusty
+language: python
+python: 2.7.13
+
+# Use the new container infrastructure
+sudo: false
+
+# Install ansible
+addons:
+  apt:
+    packages:
+    - python-pip
+
+install:
+  - pip install molecule
+  # Install ansible-lint and ansible
+  - pip install --upgrade ansible-lint
+
+  # Check ansible version
+  - ansible --version
+  - ansible-lint --version
+
+script:
+  # Tests
+  - /bin/sh tests/test.sh
+
+# notifications:
+#   webhooks: https://galaxy.ansible.com/api/v1/notifications/

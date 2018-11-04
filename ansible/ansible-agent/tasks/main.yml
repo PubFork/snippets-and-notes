@@ -1,0 +1,61 @@
+---
+# tasks file for ansible-agent
+- name: install towercli
+  pip:
+    name: tower-cli
+    state: latest
+  when: tower_interface == 'cli'
+
+- name: copy over service script
+  copy:
+    src: files/{{ tower_interface }}-agent{{ python_version }}.py
+    dest: /usr/sbin/ansible-agent
+    owner: root
+    group: root
+    mode: 0744
+  notify: restart ansible-agent
+
+- name: create ansible conf directory
+  file:
+    path: /etc/ansible
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: copy over config file
+  copy:
+    src: templates/conf.j2
+    dest: /etc/ansible/ansible-agent.conf
+    owner: root
+    group: root
+    mode: 0600
+  notify: restart ansible-agent
+
+- name: copy over provider script
+  block:
+    - name: copy over systemd script
+      copy:
+        src: files/systemd.service
+        dest: /etc/systemd/system/ansible-agent.service
+        owner: root
+        group: root
+        mode: 0755
+      when: service_provider == 'systemd'
+    - name: copy over upstart script
+      copy:
+        src: files/upstart.service
+        dest: /etc/init.d/ansible-agent.service
+        owner: root
+        group: root
+        mode: 0755
+      when: service_provider == 'upstart'
+  notify:
+    - restart ansible-agent
+    - reload ansible-agent
+
+- name: start up and enable service
+  service:
+    name: ansible-agent
+    state: started
+    enabled: true
