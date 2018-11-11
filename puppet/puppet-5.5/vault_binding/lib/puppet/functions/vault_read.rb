@@ -87,7 +87,7 @@ Puppet::Functions.create_function(:vault_read) do
       # notify if the secret does not exist
       raise(Puppet::Error, "No secret found at #{secret}.") if secret.nil?
       # is this kv v2? parse it appropriately; otherwise parse for kv v1
-      secret.key?(:data) ? secret.data[:data][field.to_sym] : secret.data[field.to_sym]
+      secret.data.key?(:data) ? secret.data[:data][field.to_sym] : secret.data[field.to_sym]
     end
   end
 end

@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-js
+  labels:
+    app: node-js
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: node-js
+  template:
+    metadata:
+      labels:
+        app: node-js
+    spec:
+      containers:
+      - name: node-js-pod
+        image: jonbaier/node-express-info:latest
+        ports:
+        - containerPort: 80
