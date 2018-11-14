@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache
+  labels:
+    app: apache
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: apache
+  template:
+    metadata:
+      labels:
+        app: apache
+    spec:
+      containers:
+      - name: apache
+        image: bitnami/apache:latest
+      ports:
+      - containerPort: 80
+      lifecycle:
+        postStart:
+          httpGet:
+            path: http://my.registration-server.com/register/
+            port: 80
+        preStop:
+          exec:
+            command: ["/usr/local/bin/apachectl","-k","graceful-stop"]
+      resources:
+        limits:
+          memory: "32Mi"
+          cpu: "200m"
