@@ -1,5 +1,5 @@
 # deploys a windows package and performs all necessary common support functionality
-define lib::windows_package(
+define example::windows_package(
   Optional[Array] $install_options      = [],
   Optional[Array] $uninstall_options    = [],
   Optional[Boolean] $postinstall_reboot = false,
