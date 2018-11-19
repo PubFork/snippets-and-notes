@@ -1,0 +1,19 @@
+{
+  "puppet_task_version": 1,
+  "supports_noop": false,
+  "description": "Inspect or modify the number of days for AWR retention.",
+  "parameters": {
+    "os_user": {
+      "description": "OS user to run sqlplus as.",
+      "type": "String[1]"
+    },
+    "retention_days": {
+      "description": "The number of days to retain the AWR. Required for 'modify' action.",
+      "type": "Optional[Variant[String[1], Numeric]]"
+    },
+    "action": {
+      "description": "Whether to show the current retention period or modify it.",
+      "type": "Enum[modify, show]"
+    }
+  }
+}

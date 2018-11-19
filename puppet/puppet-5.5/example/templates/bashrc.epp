@@ -1,0 +1,31 @@
+<%- | String $oracle_version,
+      String $jboss_root,
+      String $mdm_home,
+      String $mdm_binary_dir,
+      Array[String] $jvms,
+      String $jdk_package,
+| -%>
+# User specific aliases and functions
+#PATH=$PATH:$HOME/bin:<%= $jboss_root %>/MDM/EAP6.2/mdm1/jboss-eap-6.2
+export IATEMPDIR=<%= $mdm_binary_dir %>
+export JBOSS_MDM=<%= $jboss_root %>/<%= $jvms[0] %>
+export JAVA_HOME=/usr/java/<%= $jdk_package %>
+export PATH=$JAVA_HOME/bin:$PATH
+export INSTALL4J_JAVA_HOME=/usr/java/jdk1.7.0_79
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_SID=mdmdv05
+export ORACLE_HOME=/u01/app/oracle/product/<%= $oracle_version %>/client
+export TNS_ADMIN=/u01/app/oracle/product/<%= $oracle_version %>/dbhome_1/network/admin
+export ADR_HOME=$ORACLE_BASE/diag/rdbms/$ORACLE_SID/$ORACLE_SID
+
+#PATH=$PATH:$HOME/.local/bin:$HOME/bin
+#export ORACLE_BASE ORACLE_SID ORACLE_HOME
+PATH=$PATH:$ORACLE_HOME/bin:<%= $jboss_root %>/jdbctest
+export SSAPR=<%= $mdm_home %>/mdm/hub/cleanse/resources
+export LD_LIBRARY_PATH=<%= $mdm_home %>/mdm/hub/cleanse/lib:${ORACLE_HOME}/lib:${LD_LIBRARY_PATH}
+export PATH
+
+alias psu='ps -aef | grep $USER'
+alias jbhome='cd <%= $jboss_root %>'
+alias jbbin='cd <%= $jboss_root %>/bin'
+alias mdm1log='cd <%= $jboss_root %>/<%= $jvms[0] %>/log'

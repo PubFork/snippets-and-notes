@@ -95,3 +95,5 @@ if $facts['os']['name'] == 'AIX' {
 elsif $facts['os']['name'] =~ /RedHat|Windows/ {
   User['user'] { password => Sensitive($password) }
 }
+
+epp('example/bashrc.epp', { 'jvms' => ['jvm1', 'jvm2'] }) # string rvalue

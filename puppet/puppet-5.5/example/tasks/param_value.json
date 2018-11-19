@@ -1,0 +1,27 @@
+{
+  "puppet_task_version": 1,
+  "supports_noop": false,
+  "description": "Perform predetermined parameter value actions with sqlplus.",
+  "parameters": {
+    "os_user": {
+      "description": "OS user to run sqlplus as.",
+      "type": "String[1]"
+    },
+    "oracle_param": {
+      "description": "Oracle parameter to perform the action on.",
+      "type": "String[1]"
+    },
+    "param_value": {
+      "description": "The updated/modified value of the parameter. Required for 'set' action.",
+      "type": "Optional[Variant[String[1], Numeric]]"
+    },
+    "scope": {
+      "description": "The scope of the Oracle parameter modification. Required for 'set' action.",
+      "type": "Optional[Enum[spfile, both]]"
+    },
+    "action": {
+      "description": "The action to perform with the parameter.",
+      "type": "Enum[set, show]"
+    }
+  }
+}
