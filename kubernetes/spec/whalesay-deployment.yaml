@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whalesay-a
+  labels:
+    app: whalesay-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whalesay-a
+  template:
+    metadata:
+      labels:
+        app: whalesay-a
+    spec:
+      containers:
+      - name: hey-a
+        image: jonbaier/httpwhalesay:0.1
+        command: ["node", "index.js", "Whale Type A, Here."]
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whalesay-b
+  labels:
+    app: whalesay-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whalesay-b
+  template:
+    metadata:
+      labels:
+        app: whalesay-b
+    spec:
+      containers:
+      - name: hey-b
+        image: jonbaier/httpwhalesay:0.1
+        command: ["node", "index.js", "Whale Type B, Chillaxing."]
+        ports:
+        - containerPort: 80

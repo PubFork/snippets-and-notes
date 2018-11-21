@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: whale-svc-a
+  labels:
+    app: whalesay-a
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30301
+    protocol: TCP
+    name: http
+  selector:
+    app: whalesay-a
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whale-svc-b
+  labels:
+    app: whalesay-b
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30284
+    protocol: TCP
+    name: http
+  selector:
+    app: whalesay-b
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whale-svc-default
+  labels:
+    app: whalesay-a
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30302
+    protocol: TCP
+    name: http
+  selector:
+    app: whalesay-a
+---
+# curl --resolve <spec.rules[i].host>:<spec.rules[i].http.paths[i].path.backend.servicePort>:<ingress ip address> http://<spec.rules[i].host>
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: whale-ingress
+spec:
+  rules:
+  - host: a.whale.hey
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: whale-svc-a
+          servicePort: 80
+  - host: b.whale.hey
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: whale-svc-b
+          servicePort: 80

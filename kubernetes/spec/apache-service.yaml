@@ -5,9 +5,14 @@ metadata:
   labels:
     app: apache
 spec:
+  type: NodePort
   ports:
-  - port: 80
+  - name: http
+    protocol: TCP
+    port: 80
     nodePort: 30001
+  - name: fake-admin-http
+    protocol: TCP
+    port: 8888
   selector:
     app: apache
-  type: NodePort
