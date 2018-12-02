@@ -1,0 +1,19 @@
+{ "service":
+  { "name": "web",
+    "tags": ["rails"],
+    "port": 8080,
+    "connect": {
+      "sidecar_service": {
+        "proxy": {
+          "upstreams": [{
+            "destination_name": "socat",
+            "local_bind_port": 9191
+          }]
+        }
+      }
+    },
+    "check": {
+      "args": ["curl", "localhost"], "interval": "10s"
+    }
+  }
+}
