@@ -97,3 +97,5 @@ elsif $facts['os']['name'] =~ /RedHat|Windows/ {
 }
 
 epp('example/bashrc.epp', { 'jvms' => ['jvm1', 'jvm2'] }) # string rvalue
+
+include "profile::${downcase($facts['kernel'])}::base"

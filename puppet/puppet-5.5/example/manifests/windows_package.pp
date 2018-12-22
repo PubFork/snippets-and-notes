@@ -34,7 +34,7 @@ define example::windows_package(
   if empty($filtered_pkg) {
     # retrieve archive
     if $pkg_file =~ /(.*)\.zip$/ {
-      require sigi_sevenzip
+      require sevenzip
       # establish directory containing installer files
       $dest = "C:\\Windows\\TEMP\\${1}\\${installer}"
       # establish directory for cleanup
@@ -45,7 +45,7 @@ define example::windows_package(
         extract       => true,
         extract_flags => "x -o${cleanup}",
         extract_path  => 'C:\Windows\TEMP',
-        source        => "http://tape-is01p.sigi.us.selective.com/package/${repo_path}",
+        source        => "http://repo.com/package/${repo_path}",
         creates       => $cleanup,
         cleanup       => true,
         before        => Package[$pkg_name],
@@ -58,7 +58,7 @@ define example::windows_package(
       # establish file for cleanup
       $cleanup = "C:\\Windows\\TEMP\\${pkg_file}"
       download_file { "download ${pkg_file} for ${pkg_name}":
-        url                   => "http://tape-is01p.sigi.us.selective.com/package/${repo_path}",
+        url                   => "http://repo.com/package/${repo_path}",
         destination_directory => 'C:\Windows\TEMP',
         before                => Package[$pkg_name],
       }

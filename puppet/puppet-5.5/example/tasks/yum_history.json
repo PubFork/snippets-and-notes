@@ -1,0 +1,11 @@
+{
+    "puppet_task_version": 1,
+    "supports_noop": false,
+    "description": "Display last updates applied to client server.",
+    "parameters": {
+      "display_lines": {
+        "description": "The number of lines provided by yum history [3]-20:",
+        "type": "Optional[Integer]"
+      }
+    }
+  }
