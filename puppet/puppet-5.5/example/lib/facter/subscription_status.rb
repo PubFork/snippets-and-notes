@@ -10,6 +10,7 @@ Facter.add(:subscription_status) do
     when 'Linux'
       # check the existence of 'subscription-manager' in the shell path
       if Facter::Core::Execution.which('subscription-manager')
+        # TODO: optimize
         if Facter.value(:os)['release']['major'] == '6'
           # shell out the command the subscription-manager status
           stdout = Facter::Core::Execution.execute('subscription-manager list')

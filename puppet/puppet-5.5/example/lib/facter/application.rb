@@ -1,6 +1,6 @@
 require 'facter'
 
-# custom fact that determines the application role of a server
+# custom fact that determines the application of a server
 Facter.add(:application) do
   setcode do
     # initially based upon operating system
