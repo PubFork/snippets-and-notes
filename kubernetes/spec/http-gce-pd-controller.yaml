@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-pd
+  labels:
+    app: http-pd
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: http-pd
+      app: http-pd
+  template:
+    metadata:
+      labels:
+        name: http-pd
+        app: http-pd
+    spec:
+      containers:
+      - image: nginx:latest
+      ports:
+      - containerPort: 80
+      name: http-pd
+      volumeMounts:
+      - mountPath: /usr/share/nginx/html
+        name: gce-pd
+    volumes:
+    - name: gce-pd
+      gcePersistentDisk:
+        pdName: mysite-volume-1
+        fsType: ext4
+        readOnly: true
