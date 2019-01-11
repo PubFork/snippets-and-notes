@@ -11,10 +11,10 @@ provider "dnsimple" {
 }
 
 resource "aws_instance" "web" {
-  ami                    = "ami-db24d8b6"
-  instance_type          = "t2.micro"
-  subnet_id              = "subnet-c02e6198"
-  vpc_security_group_ids = ["sg-b1fe76ca"]
+  ami                    = "${var.ami}"
+  instance_type          = "${var.instance_type}"
+  subnet_id              = "${var.subnet_id}"
+  vpc_security_group_ids = "${var.vpc_security_group}"
   key_name               = "${aws_key_pair.key.id}"
   count                  = "${var.num_webs}"
 
@@ -45,7 +45,7 @@ resource "aws_instance" "web" {
 
 resource "aws_key_pair" "key" {
   key_name   = "${var.identity}-key"
-  public_key = "${file(""/home/matt/.ssh/id_rsa.pub")}"
+  public_key = "${file("/home/matt/.ssh/id_rsa.pub")}"
 }
 
 resource "dnsimple_record" "web" {

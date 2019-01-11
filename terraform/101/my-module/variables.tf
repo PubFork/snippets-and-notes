@@ -58,3 +58,27 @@ variable "num_webs" {
 
   default = "2"
 }
+
+variable "ami" {
+  type = "string"
+
+  description = "AMI id"
+}
+
+variable "subnet_id" {
+  type = "string"
+
+  description = "Subnet ID for the instance"
+}
+
+variable "vpc_security_group" {
+  type = "list"
+
+  description = "VPC Security group list"
+}
+
+variable "instance_type" {
+  type = "string"
+
+  description = "AWS EC2 instance type"
+}

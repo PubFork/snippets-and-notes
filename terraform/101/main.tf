@@ -1,11 +1,11 @@
 module "my-module" {
   source = "./my-module"
 
-  ami                = "${var.ami}"
-  subnet_id          = "${var.subnet_id}"
-  vpc_security_group = "${var.vpc_security_group}"
-  identity           = "${var.identity}"
-  instance_type      = "${var.instance_type}"
+  ami                = "ami-db24d8b6"
+  subnet_id          = "subnet-c02e6198"
+  vpc_security_group = ["sg-b1fe76ca"]
+  identity           = "..."
+  instance_type      = "t2.micro"
 }
 
 output "public_ip" {
