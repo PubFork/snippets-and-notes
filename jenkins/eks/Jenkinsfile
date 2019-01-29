@@ -1,4 +1,4 @@
-@Library('jenkins-devops-libs@v1.0.0')_
+@Library('jenkins-devops-libs@v1.2.0')_
 //library identifier: 'jenkins-devops-libs@master', retriever: modernSCM(
   //[$class: 'GitSCMSource',
    //remote: 'https://github.com/mschuchard/jenkins-devops-libs.git'])
@@ -48,15 +48,21 @@ pipeline {
           // needs aws creds passed in
           print 'Initialize Workspace'
           script {
-            terraform.init('eks')
+            terraform.init {
+              dir     = 'eks'
+              upgrade = true
+            }
           }
           print 'Create Plan'
           script {
-            terraform.plan('eks')
+            terraform.plan { dir = 'eks' }
           }
           print 'Create EKS'
           script {
-            terraform.apply('eks/plan.tfplan')
+            terraform.apply {
+              config   = 'eks/plan.tfplan'
+              var_file = 'eks/terraform.tfvars'
+            }
           }
         }
       }
