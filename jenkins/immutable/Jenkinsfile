@@ -1,6 +1,6 @@
 // post steps; terraform vars for platform; comments; puppet and chef; azure and do; serverspec and testinfra; packer and terraform should probably be cloned into branch dir; update terraform usage; terraform plan outputs need to be unique so config dirs need to be unique (or workspaces/branches/modules whatever) also terraform modifying same tfstate and hidden dirs not good
-//@Library('jenkins-devops-libs@v1.0.0')_
-library identifier: 'jenkins-devops-libs@master', retriever: modernSCM(
+//@Library('jenkins-devops-libs@v1.2.0')_
+library identifier: 'jenkins-devops-libs@1.2.0', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: 'https://github.com/mschuchard/jenkins-devops-libs.git'])
 
@@ -137,15 +137,15 @@ pipeline {
             stage('Validate Config') {
               steps {
                 script {
-                  terraform.init('terraform')
-                  terraform.plan('terraform')
+                  terraform.init { dir = 'terraform' }
+                  terraform.plan { dir = 'terraform' }
                 }
               }
             }
             // destroy first
             stage('Create EC2 with AMI') {
               script {
-                terraform.apply('terraform/plan.tfplan')
+                terraform.apply { config = 'terraform/plan.tfplan' }
               }
             }
           }
@@ -165,15 +165,15 @@ pipeline {
             stage('Validate Config') {
               steps {
                 script {
-                  terraform.init('terraform')
-                  terraform.plan('terraform')
+                  terraform.init { dir = 'terraform' }
+                  terraform.plan { dir = 'terraform' }
                 }
               }
             }
             // destroy first; unsure what the minimum required resources are here
             stage('Create VM with VHD') {
               script {
-                terraform.apply('terraform/plan.tfplan')
+                terraform.apply { config = 'terraform/plan.tfplan' }
               }
             }
           }
@@ -193,15 +193,15 @@ pipeline {
             stage('Validate Config') {
               steps {
                 script {
-                  terraform.init('terraform')
-                  terraform.plan('terraform')
+                  terraform.init { dir = 'terraform' }
+                  terraform.plan { dir = 'terraform' }
                 }
               }
             }
             // destroy first
             stage('Create Droplet with DI') {
               script {
-                terraform.apply('terraform/plan.tfplan')
+                terraform.apply { config = 'terraform/plan.tfplan' }
               }
             }
           }
