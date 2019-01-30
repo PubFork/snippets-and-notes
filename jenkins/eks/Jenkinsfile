@@ -86,7 +86,7 @@ pipeline {
       environment { KUBECONFIG = "${env.WORKSPACE}/kubeconfig" }
       steps {
         print 'Validate Ansible Playbook'
-        ansiblePlaybook(disableHostKeyChecking: true, extras: '--syntax-check', playbook: 'post-eks/playbook.yml')
+        ansiblePlaybook(disableHostKeyChecking: true, extras: '--syntax-check', playbook: 'post-eks/playbook_new.yml')
         print 'Provision Local System'
         ansiblePlaybook(disableHostKeyChecking: true, extras: '-i localhost', playbook: 'post-eks/playbook.yml')
       }

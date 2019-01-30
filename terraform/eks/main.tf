@@ -28,7 +28,7 @@ locals {
 
 module "vpc" {
   source                 = "terraform-aws-modules/vpc/aws"
-  version                = "1.37.0"
+  version                = "1.53.0"
   name                   = "${var.vpc_name}"
   cidr                   = "10.0.0.0/16"
   azs                    = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}", "${data.aws_availability_zones.available.names[2]}"]
@@ -42,7 +42,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "1.2.0"
+  version = "2.1.0"
 
   #config_output_path          = "~/.kube"
   cluster_name    = "${var.cluster_name}"

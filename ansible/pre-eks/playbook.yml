@@ -59,6 +59,10 @@
       state: directory
       path: "{{ansible_env.HOME}}/.kube"
 
+  - name: install openshift pip for post-eks provisioning
+    pip:
+      name: openshift
+
   - name: download heptio authenticator aws binary
     get_url:
       url: https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v{{heptio_auth_version}}/heptio-authenticator-aws_{{heptio_auth_version}}_{{ansible_system | lower}}_amd64
