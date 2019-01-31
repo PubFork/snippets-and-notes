@@ -8,3 +8,4 @@ sentinel/ss-sentinel/build
 **/.terraform
 **/terraform.d
 **/__pycache__
+**/terraform.tfstate

@@ -1,9 +1,9 @@
 locals {
   worker_groups = "${list(
-                  map("instance_type", "m4.2xlarge",
+                  map("instance_type", "${var.worker_instance_type}",
                       "asg_desired_capacity", "${var.asg_size}",
-                      "asg_max_size", "${var.asg_size}",
-                      "asg_min_size", "${var.asg_size}",
+                      "asg_max_size", "${var.asg_max_size}",
+                      "asg_min_size", "${var.asg_min_size}",
                       "name", "worker_group_a",
                   )
   )}"
