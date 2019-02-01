@@ -1,4 +1,4 @@
 ---
 kubectl_pkg: false
-kubectl_version: 1.10.4
+kubectl_version: 1.11.7 # eks currently on 1.11 so lock to 1.11.x
 heptio_auth_version: 0.3.0

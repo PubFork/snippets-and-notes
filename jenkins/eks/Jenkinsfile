@@ -3,7 +3,6 @@
   //[$class: 'GitSCMSource',
    //remote: 'https://github.com/mschuchard/jenkins-devops-libs.git'])
 
-//need to update terraform usage
 //need to store kubeconfig afterward
 pipeline {
   agent any
@@ -45,7 +44,6 @@ pipeline {
           accessKeyVariable: 'ACCESS_KEY',
           secretKeyVariable: 'SECRET_KEY'
         ]]) {
-          // needs aws creds passed in
           print 'Initialize Workspace'
           script {
             terraform.init {
@@ -55,13 +53,17 @@ pipeline {
           }
           print 'Create Plan'
           script {
-            terraform.plan { dir = 'eks' }
+            terraform.plan {
+              dir = 'eks'
+              //var = ["access_key=${ACCESS_KEY}", "secret_key=${SECRET_KEY}"]
+            }
           }
           print 'Create EKS'
           script {
             terraform.apply {
               config   = 'eks/plan.tfplan'
               var_file = 'eks/terraform.tfvars'
+              //var = ["access_key=${ACCESS_KEY}", "secret_key=${SECRET_KEY}"]
             }
           }
         }
@@ -75,20 +77,19 @@ pipeline {
         }
       }
     }
-    // needs credentials passed in
-    //withCredentials([[
-    //  $class: 'AmazonWebServicesCredentialsBinding',
-    //  credentialsId: params.AWS_CREDS,
-    //  accessKeyVariable: 'ACCESS_KEY',
-    //  secretKeyVariable: 'SECRET_KEY'
-    //]]) {
     stage('Prepare Local System for EKS Usage') {
       environment { KUBECONFIG = "${env.WORKSPACE}/kubeconfig" }
       steps {
-        print 'Validate Ansible Playbook'
-        ansiblePlaybook(disableHostKeyChecking: true, extras: '--syntax-check', playbook: 'post-eks/playbook_new.yml')
-        print 'Provision Local System'
-        ansiblePlaybook(disableHostKeyChecking: true, extras: '-i localhost', playbook: 'post-eks/playbook.yml')
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: params.AWS_CREDS,
+          accessKeyVariable: 'ACCESS_KEY',
+          secretKeyVariable: 'SECRET_KEY'
+        ]]) {
+          print 'Validate Ansible Playbook'
+          ansiblePlaybook(disableHostKeyChecking: true, extras: '--syntax-check', playbook: 'post-eks/playbook_new.yml')
+          print 'Provision Local System'
+          ansiblePlaybook(disableHostKeyChecking: true, extras: '-i localhost', extraVars: ["access_key=${ACCESS_KEY}", "secret_key=${SECRET_KEY}"], playbook: 'post-eks/playbook_new.yml')
       }
       post {
         success {
@@ -103,6 +104,7 @@ pipeline {
       environment { KUBECONFIG = "${env.WORKSPACE}/kubeconfig" }
       steps {
         print 'Install Dashboard with Helm Chart'
+        // not super sure how to broker aws creds to helm with one degree of separation
         script {
           helm.install {
             chart = 'stable/kubernetes-dashboard'

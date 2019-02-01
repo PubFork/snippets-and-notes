@@ -6,7 +6,7 @@
   - vars.yml
 
   tasks:
-  - name: install kubectl with package management
+  - name: install kubectl with package management on RedHat
     block:
     - name: subscribe to kubernetes yum repository
       yum_repository:
@@ -18,25 +18,31 @@
         - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
         # el7 is only viable release for kubernetes on redhat family
         baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-      when: ansible_os_family == RedHat
-
-    - name: import kubernetes apt key
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
-      when: ansible_os_family == Debian
-
-    - name: subscribe to kubernetes apt repository
-      apt_repository:
-        repo: deb http://apt.kubernetes.io/ kubernetes-{{ansible_distribution_release}} main
-        state: present
-      when: ansible_os_family == Debian
 
     - name: install kubectl package
       package:
         name: kubectl-{{kubectl_version}}
         state: installed
-    when: kubectl_pkg == true
+    when: kubectl_pkg == true && ansible_os_family == RedHat
+    become: true
+
+  - name: install kubectl with package management on RedHat
+    block:
+    - name: import kubernetes apt key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: subscribe to kubernetes apt repository
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-{{ansible_distribution_release}} main
+        state: present
+
+    - name: install kubectl package
+      package:
+        name: kubectl={{kubevers}}-00
+        state: installed
+    when: kubectl_pkg == true && ansible_os_family == Debian
     become: true
 
   - name: install from a static binary
@@ -62,6 +68,7 @@
   - name: install openshift pip for post-eks provisioning
     pip:
       name: openshift
+    become: true
 
   - name: download heptio authenticator aws binary
     get_url:

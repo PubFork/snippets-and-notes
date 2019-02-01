@@ -5,6 +5,7 @@ locals {
                       "asg_max_size", "${var.asg_max_size}",
                       "asg_min_size", "${var.asg_min_size}",
                       "name", "worker_group_a",
+                      "root_volume_size", "40",
                   )
   )}"
 
