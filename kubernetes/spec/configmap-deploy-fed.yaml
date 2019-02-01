@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-js-deploy
+  labels:
+    app: node-js-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: node-js-configmap-deploy
+  template:
+    metadata:
+      labels:
+        name: node-js-configmap-deploy
+    spec:
+      containers:
+      - name: configmap-pod
+        image: jonbaier/node-express-info:latest
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: configmap-volume
+          mountPath: /etc/config
+      volumes:
+      - name: configmap-volume
+        configMap:
+          name: my-application-config
