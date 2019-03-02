@@ -1,4 +1,7 @@
 # TODO: redirect vault errors to puppet errors; cache vault connection; error checking; docs/tests/enhance; https://www.rubydoc.info/gems/vault/0.12.0/Vault/Defaults; input checking
+# https://github.com/tvpartytonight/vault_lookup/blob/102b16076768bfdcfbaf3f140aadc808c8e183f6/lib/puppet/functions/vault_lookup.rb
+# https://github.com/petems/petems-hiera_vault/blob/master/lib/puppet/functions/hiera_vault.rb
+# https://github.com/voxpupuli/puppet-vault_lookup/blob/master/lib/puppet/functions/vault_lookup/lookup.rb
 # Reads a secret from Vault.
 Puppet::Functions.create_function(:vault_read) do
   # Reads a secret from Vault.

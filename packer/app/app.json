@@ -1,0 +1,88 @@
+{
+  "min_packer_version": "1.3.4",
+  "variables": {
+    "env_name": "dev",
+    "region": "us-east-1",
+    "ami_regions": "us-east-1",
+    "owner_id": "123456789",
+    "instance_type": "c4.large",
+    "app_version": "1.0.0",
+    "ami_type": "base",
+    "puppet_version": "5.5.8"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "region": "{{user `region`}}",
+    "vpc_filter": {
+      "filters": {
+        "isDefault": "false",
+        "state": "available",
+        "owner-id": "{{user `owner_id`}}"
+      }
+    },
+    "subnet_filter": {
+      "filters": {
+        "state": "available",
+        "owner-id": "{{user `owner_id`}}"
+      },
+      "most_free": true
+    },
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "platform": "windows",
+        "architecture": "x86_64",
+        "name": "Windows_Server-2016-English-Full-Base-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["amazon"],
+      "most_recent": true
+    },
+    "instance_type": "{{user `instance_type`}}",
+    "iam_instance_profile": "{{user `env_name`}}-app",
+    "spot_price": "auto",
+    "spot_price_auto_product": "Windows",
+    "communicator": "winrm",
+    "user_data_file": "setupWinRM.ps1",
+    "winrm_username": "Administrator",
+    "winrm_use_ssl": false,
+    "winrm_insecure": true,
+    "disable_stop_instance": true,
+    "ami_name": "app-{{user `ami_type`}}-{{user `app_version`}}-{{timestamp}}",
+    "launch_block_device_mappings": [{
+      "device_name": "/dev/sda1",
+      "volume_size": 45,
+      "volume_type": "gp2",
+      "delete_on_termination": true,
+      "encrypted": false
+    }],
+    "ami_regions": "{{user `ami_regions`}}",
+    "ami_description": "AMI for the APP {{user `ami_type`}} application version {{user `app_version`}}",
+    "run_tags": {
+      "Name": "Packer-APP-{{user `ami_type`}}"
+    },
+    "run_volume_tags": {
+      "Name": "Packer-APP-{{user `ami_type`}}"
+    },
+    "tags": {
+      "Name": "APP",
+      "Release": "{{user `app_version`}}"
+    }
+  }],
+  "provisioners": [{
+    "type": "powershell",
+    "script": "provisioner.ps1"
+  },
+  {
+    "type": "file",
+    "source": "one.xml",
+    "destination": "C:\\App\\Conf\\one.xml"
+  },
+  {
+    "type": "powershell",
+    "inline": [
+      "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\InitializeInstance.ps1 -Schedule",
+      "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\SysprepInstance.ps1 -NoShutdown"
+    ]
+  }]
+}
