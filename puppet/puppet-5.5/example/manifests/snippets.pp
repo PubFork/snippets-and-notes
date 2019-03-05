@@ -99,3 +99,16 @@ elsif $facts['os']['name'] =~ /RedHat|Windows/ {
 epp('example/bashrc.epp', { 'jvms' => ['jvm1', 'jvm2'] }) # string rvalue
 
 include "profile::${downcase($facts['kernel'])}::base"
+
+# append
+File['/etc/passwd'] {
+  owner => 'root',
+  mode  => '0640',
+}
+
+# amend
+File <| tag == 'base::linux' |> {
+  owner => 'root',
+  mode  => '0640',
+  foo   +> ['bar', 'baz'], # appending to attributes that accept arrays
+}

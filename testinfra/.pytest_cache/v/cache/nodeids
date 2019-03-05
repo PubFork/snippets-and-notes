@@ -1,9 +1,0 @@
-[
-  "notes.py::test_passwd_file[local]",
-  "notes.py::test_nginx_is_installed[local]",
-  "notes.py::test_nginx_running_and_enabled[local]",
-  "notes.py::test_gethostname[local]",
-  "notes.py::test_packages[local-cron-3.0]",
-  "notes.py::test_process[local]",
-  "notes.py::test_packages[local-apt-1.5]"
-]
