@@ -9,3 +9,4 @@ sentinel/ss-sentinel/build
 **/terraform.d
 **/__pycache__
 **/terraform.tfstate
+ctdt-optimizer/lib/ctdtoptimizer/ctdt-optimizer-devbin
