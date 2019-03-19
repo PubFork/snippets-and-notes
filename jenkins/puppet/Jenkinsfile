@@ -1,0 +1,113 @@
+// TODO: pdk caches in homedir which is / which has write permissions for user jenkins inside the image; figure out better workaround for this than running inside container as root
+@Library('jenkins-devops-libs@v1.2.0')_
+
+pipeline {
+  agent {
+    docker {
+      image 'puppet/puppet-dev-tools'
+      args '-u root:root -v $HOME/workspace/.pdk:/root/.pdk'
+    }
+  }
+
+  parameters {
+    string(name: 'SCM_URL', description: 'The URL (HTTPS or SSH URI) to the source repository containing the Puppet module.', defaultValue: 'https://github.com/puppetlabs/puppetlabs-ntp.git')
+    string(name: 'MODULE', description: 'The name of the Puppet module to be tested.', defaultValue: 'puppetlabs-ntp')
+    string(name: 'BRANCH', description: 'The branch of the Puppet module to be tesed.', defaultValue: 'master')
+    string(name: 'MASTER', description: 'The reachable name of the Puppet Master hosting the Code Manager/Compiler service(s).', defaultValue: 'puppet')
+    string(name: 'SERVER', description: 'The server to execute a Puppet Agent run on at pipeline completion (by default this does not occur).', defaultValue: null)
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        print 'Retrieving Puppet module from remote Git repository.'
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${params.BRANCH}"]],
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[$class: 'RelativeTargetDirectory',
+            relativeTargetDir: "${params.MODULE}/${params.BRANCH}"]],
+          submoduleCfg: [],
+          userRemoteConfigs: [[url: params.SCM_URL]]])
+      }
+      post {
+        success {
+          print "Puppet module ${params.MODULE} retrieved."
+        }
+      }
+    }
+    stage('Validate') {
+      steps {
+        print 'Executing PDK validation.'
+        script {
+          dir("${params.MODULE}/${params.BRANCH}") {
+            sh 'pdk validate --parallel --pe-version 2018.1'
+          }
+        }
+      }
+      post {
+        success {
+          print "${params.MODULE} successfully validated with PDK."
+        }
+      }
+    }
+    stage('Unit Test') {
+      steps {
+        print 'Executing PDK unit testing.'
+        script {
+          dir("${params.MODULE}/${params.BRANCH}") {
+            sh 'pdk test unit --pe-version 2018.1'
+          }
+        }
+      }
+      post {
+        success {
+          print "${params.MODULE} successfully unit tested with PDK."
+        }
+      }
+    }
+    stage('Code Manager Deploy') {
+      agent { label 'master' }
+
+      steps {
+        print 'Deploying code with Code Manager.'
+        script {
+          puppet.code_deploy {
+            environments = [params.BRANCH]
+            servers      = [params.MASTER]
+            token        = "${env.HOME}.puppetlabs/token"
+            wait         = true
+          }
+        }
+      }
+      post {
+        success {
+          print "${params.MODULE} successfully deployed to ${params.MASTER} inside ${params.BRANCH} environment."
+        }
+      }
+    }
+    stage('Puppet Agent Orchestration') {
+      when { expression { return params.SERVER != null } }
+      agent { label 'master' }
+
+      steps {
+        print 'Executing Puppet Agent on server.'
+        script {
+          puppet.task {
+            description = "apply ${params.MODULE} from ${params.BRANCH} on ${params.SERVER}"
+            environment = [params.BRANCH]
+            scope       = [params.SERVER]
+            server      = params.MASTER
+            task        = 'puppet'
+            token       = "${env.HOME}.puppetlabs/token"
+          }
+        }
+      }
+      post {
+        success {
+          print "Puppet Agent successfully executed on ${params.SERVER}."
+        }
+      }
+    }
+  }
+}
