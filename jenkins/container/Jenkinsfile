@@ -6,7 +6,7 @@
 //TODO: input params for build/run args?
 //TODO: pull stuff out of script blocks if unnecessary
 
-library('jenkins-devops-libs')
+@Library('jenkins-devops-libs@v1.2.0')_
 
 pipeline {
   agent any

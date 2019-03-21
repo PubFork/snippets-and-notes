@@ -15,8 +15,8 @@
 # sudo docker ps -qa | xargs sudo docker rm
 # sudo docker images | grep zauberautomato | awk '{print $3}' | xargs sudo docker rmi
 
-FROM fedora:23
+FROM fedora:28
 RUN dnf install ruby -y
 RUN gem install --no-document rake rspec rspec-its
-COPY / /
+COPY / .
 ENTRYPOINT ["rake"]
