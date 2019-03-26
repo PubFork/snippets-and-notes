@@ -184,6 +184,7 @@ pipeline {
               //TODO: this does not modify the object as desired
               buildInfo.repoDigest = repodigest
               print "Repo Digest is: ${repoDigest}"
+              repoDigest = null
               // for purging older images
               buildInfo.retention(maxBuilds: 10, deleteBuildArtifacts: true)
               // push build info manifest to artifactory
