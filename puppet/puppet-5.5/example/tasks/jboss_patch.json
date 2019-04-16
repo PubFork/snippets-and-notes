@@ -1,0 +1,19 @@
+{
+  "puppet_task_version": 1,
+  "supports_noop": false,
+  "description": "Patches JBOSS on a server.",
+  "parameters": {
+    "os_user": {
+      "description": "OS user to run command as.",
+      "type": "String[1]"
+    },
+    "patch_source": {
+      "description": "HTTP URI location of the patch file to download. This is preferably from the Moodys artifact server repository.",
+      "type": "String[1]"
+    },
+    "cli_path": {
+      "description": "Directory location of the jboss-cli executable. Default value '/opt/jboss/bin'.",
+      "type": "Optional[String[1]]"
+    }
+  }
+}

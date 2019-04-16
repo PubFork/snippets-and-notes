@@ -112,3 +112,13 @@ File <| tag == 'base::linux' |> {
   mode  => '0640',
   foo   +> ['bar', 'baz'], # appending to attributes that accept arrays
 }
+
+# jboss versioning always semantic
+$jboss_version = $installation_file.match(/(\d\.\d\.\d)/)[1]
+
+if versioncmp($jboss_version, '7') >= 0 {
+  include elytron
+}
+else {
+  include password_vault
+}
