@@ -1,5 +1,5 @@
 // pdk test unit definitely going slowly for some reason
-@Library('jenkins-devops-libs@v1.2.0')_
+@Library('jenkins-devops-libs@v1.2.1')_
 
 pipeline {
   agent none
