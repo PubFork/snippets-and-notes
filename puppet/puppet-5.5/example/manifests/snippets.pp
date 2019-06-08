@@ -122,3 +122,11 @@ if versioncmp($jboss_version, '7') >= 0 {
 else {
   include password_vault
 }
+
+# dig into nested hash with unknown keys
+$hash.values[0]['key1'].values[0]['key2']
+
+# windows grep for execs
+exec { 'install python at version':
+  unless => "\"${install_path}\\python.exe\" --version | findstr /R ${python_version}",
+}
