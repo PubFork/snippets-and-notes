@@ -17,7 +17,10 @@ spec:
       containers:
       - name: hey-a
         image: jonbaier/httpwhalesay:0.1
-        command: ["node", "index.js", "Whale Type A, Here."]
+        command:
+          - 'node'
+          - 'index.js'
+          - 'Whale Type A, Here.'
         ports:
         - containerPort: 80
 ---
@@ -40,6 +43,9 @@ spec:
       containers:
       - name: hey-b
         image: jonbaier/httpwhalesay:0.1
-        command: ["node", "index.js", "Whale Type B, Chillaxing."]
+        command:
+          - 'node'
+          - 'index.js'
+          - 'Whale Type B, Chillaxing.'
         ports:
         - containerPort: 80

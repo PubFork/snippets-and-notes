@@ -27,7 +27,10 @@ spec:
               port: 80
           preStop:
             exec:
-              command: ["/usr/local/bin/apachectl","-k","graceful-stop"]
+              command:
+                - "/usr/local/bin/apachectl"
+                - "-k"
+                - "graceful-stop"
         resources:
           limits:
             memory: "32Mi"

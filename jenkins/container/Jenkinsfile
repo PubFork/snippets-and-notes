@@ -291,7 +291,7 @@ pipeline {
         dir(params.BRANCH) {
           script {
             // ensure helm and tiller are setup
-            helm.setup('2.8.2', '/usr/bin')
+            helm.setup('2.12.3', '/usr/bin')
             // circumventing closure scope issue
             def localParams = params
             // deploy application to kubernetes cluster
