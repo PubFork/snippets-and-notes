@@ -1,0 +1,6 @@
+# example config
+---
+:user: username
+:pass: password
+:server: servername
+:proxy: proxy address # this can be nil

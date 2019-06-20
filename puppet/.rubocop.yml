@@ -1,0 +1,6 @@
+---
+Metrics:
+  Enabled: false
+
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
