@@ -1,11 +1,13 @@
-#TODO: interface for inputs (see constants below), kv of dest-depart for matrix of possibilities, store response data in file and check timestamp for update, track prices over time, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels
+#TODO: refactor for class; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, check cache timestamp for update, track prices over time (how to match same dest/depart date), availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
 
 import re
+from datetime import date
+import datetime
 from amadeus import Client
 import ruamel.yaml as yaml
 
 
-ORIGIN = 'ATL'
+# assume origin is atl, carrier is dl, and segments is 1
 DEST = 'MIA'
 DATE = '2019-12-23'
 DEBUG = True
@@ -14,20 +16,23 @@ DEBUG = True
 creds = yaml.safe_load(open('/home/matt/.amadeus/creds').read())
 
 if DEBUG:
-    data = open('debug.txt').read().to_dict()
+    data = yaml.safe_load(open('cache.txt').read())
 else:
     # initialize client
     amadeus = Client(client_id=creds['api_key'], client_secret=creds['api_secret'])
 
     # configure request and assign response
     response = amadeus.shopping.flight_offers.get(
-        origin=ORIGIN,
+        origin='ATL',
         destination=DEST,
         departureDate=DATE
     )
 
     # store response data
     data = response.data
+
+    # cache response data
+    open('cache.txt', 'w+').write(yaml.dump(data))
 
 # initialize filtered array of offers
 filtered = []
@@ -39,7 +44,7 @@ for offer in data:
         filtered.append(offer['offerItems'][0])
 
 # output origin, dest, date
-print('Origin:', ORIGIN, 'Destination:', DEST, 'Date:', DATE)
+print('Origin:', 'ATL', 'Destination:', DEST, 'Date:', DATE, 'Today:', date.today())
 
 # output time and price
 for offer in filtered:
