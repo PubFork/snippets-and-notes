@@ -13,29 +13,41 @@ class FlightTracker(object):
     currently assume origin is atl, carrier is dl, and segments is 1"""
 
     # constructor
-    def __init__(self, dest = 'MIA', date = '2019-12-23', debug = True):
+    def __init__(self, dest='MIA', depart='2019-12-23', debug=True):
+        # set instance vars
+        self.__dest = dest
+        self.__depart = depart
+
+        # set cache name
+        cache = f"{dest}-{date}-{datetime.date.today()}.txt"
+
         # retrieve or grab data
+        if debug:
+            self.__data = yaml.safe_load(open(cache).read())
+        else:
+            # store response data
+            self.__data = __amadeus_client()
+
+            # cache response data
+            open(cache, 'w+').write(yaml.dump(self.__data))
+
+    # queries amadeus for prices
+    def __amadeus_client(self):
         # set credentials
         creds = yaml.safe_load(open('/home/matt/.amadeus/creds').read())
 
-        if debug:
-            self.__data = yaml.safe_load(open('cache.txt').read())
-        else:
-            # initialize client
-            amadeus = Client(client_id=creds['api_key'], client_secret=creds['api_secret'])
+        # initialize client
+        amadeus = Client(client_id=creds['api_key'], client_secret=creds['api_secret'])
 
-            # configure request and assign response
-            response = amadeus.shopping.flight_offers.get(
-                origin='ATL',
-                destination=DEST,
-                departureDate=DATE
-            )
+        # configure request and assign response
+        response = amadeus.shopping.flight_offers.get(
+            origin='ATL',
+            destination=self.__dest,
+            departureDate=self.__depart
+        )
 
-            # store response data
-            self.__data = response.data
+        return response.data
 
-            # cache response data
-            open('cache.txt', 'w+').write(yaml.dump(self.__data))
 
     # displays history of prices for selected destination and depart date
     def display_flights(self):
