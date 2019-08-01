@@ -1,8 +1,7 @@
-#TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, check cache timestamp for update, track prices over time (how to match same dest/depart date), availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
+#TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, check cache timestamp versus today for update, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
 
 import re
 from datetime import date
-import datetime
 from amadeus import Client
 import ruamel.yaml as yaml
 
@@ -19,10 +18,12 @@ class FlightTracker(object):
         self.__depart = depart
 
         # set cache name
-        cache = f"{dest}-{date}-{datetime.date.today()}.txt"
+        cache = f"{self.__dest}-{self.__depart}-{date.today()}.txt"
 
+        # TODO: change this logic to query and dump only if cache for dest-today does not exist
         # retrieve or grab data
         if debug:
+            # TODO: needs to load all relevant caches
             self.__data = yaml.safe_load(open(cache).read())
         else:
             # store response data
@@ -48,7 +49,7 @@ class FlightTracker(object):
 
         return response.data
 
-
+    # TODO: this needs to iterate over all days from caches
     # displays history of prices for selected destination and depart date
     def display_flights(self):
         # initialize filtered array of offers
@@ -61,7 +62,7 @@ class FlightTracker(object):
                 filtered.append(offer['offerItems'][0])
 
         # output origin, dest, date
-        print('Origin:', 'ATL', 'Destination:', DEST, 'Date:', DATE, 'Today:', date.today())
+        print('Origin:', 'ATL', 'Destination:', self.__dest, 'Date:', self.__depart, 'Today:', date.today())
 
         # output time and price
         for offer in filtered:
@@ -73,3 +74,19 @@ class FlightTracker(object):
             plane = offer['services'][0]['segments'][0]['flightSegment']['aircraft']['code']
             # output info
             print('Number:', number, 'Departure Time:', depart_time, 'Price:', price, 'Plane:', plane)
+
+
+# main method
+def main():
+    """main method for flight tracker"""
+    # construct class object
+    flight = FlightTracker()
+
+    # display results
+    flight.display_flights()
+
+    return 0
+
+
+# execute flight tracker
+main()
