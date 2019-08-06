@@ -1,4 +1,4 @@
-#TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, check cache timestamp versus today for update, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
+#TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
 
 import re
 from pathlib import Path
@@ -24,18 +24,23 @@ class FlightTracker(object):
 
         # retrieve or load data
         if Path(cache).is_file():
+            # load cached file for today's prices
+            print('Using cached data retrieved today for prices.')
             self.__data = yaml.safe_load(open(cache).read())
         else:
-            # store response data
+            # query and store response data
+            print('Querying Amadeus endpoint for today\'s prices.')
             self.__data = self.__amadeus_client()
 
             # cache response data
             open(cache, 'w+').write(yaml.dump(self.__data))
 
         # add in additional cached data
-        for cached in Path('.').glob('*.txt'):
-            # load cached data
-            self.__data += yaml.safe_load(open(str(cached)).read())
+        for cached in Path('.').glob(f"{self.__dest}-{self.__depart}-*.txt"):
+            # read in cached data as string (cached is object and must be cast)
+            cached_data = open(str(cached)).read()
+            # load cached data from yaml and add to data dict
+            self.__data.extend(yaml.safe_load(cached_data))
 
     # queries amadeus for prices
     def __amadeus_client(self):
@@ -54,7 +59,7 @@ class FlightTracker(object):
 
         return response.data
 
-    # TODO: this needs to iterate over all days from caches
+    # TODO: need to output retrieval date for each set of prices
     # displays history of prices for selected destination and depart date
     def display_flights(self):
         # initialize filtered array of offers
