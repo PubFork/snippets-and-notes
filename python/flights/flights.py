@@ -1,7 +1,9 @@
 #TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, check cache timestamp versus today for update, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
 
 import re
+from pathlib import Path
 from datetime import date
+
 from amadeus import Client
 import ruamel.yaml as yaml
 
@@ -12,7 +14,7 @@ class FlightTracker(object):
     currently assume origin is atl, carrier is dl, and segments is 1"""
 
     # constructor
-    def __init__(self, dest='MIA', depart='2019-12-23', debug=True):
+    def __init__(self, dest='MIA', depart='2019-12-23'):
         # set instance vars
         self.__dest = dest
         self.__depart = depart
@@ -20,17 +22,20 @@ class FlightTracker(object):
         # set cache name
         cache = f"{self.__dest}-{self.__depart}-{date.today()}.txt"
 
-        # TODO: change this logic to query and dump only if cache for dest-today does not exist
-        # retrieve or grab data
-        if debug:
-            # TODO: needs to load all relevant caches
+        # retrieve or load data
+        if Path(cache).is_file():
             self.__data = yaml.safe_load(open(cache).read())
         else:
             # store response data
-            self.__data = __amadeus_client()
+            self.__data = self.__amadeus_client()
 
             # cache response data
             open(cache, 'w+').write(yaml.dump(self.__data))
+
+        # add in additional cached data
+        for cached in Path('.').glob('*.txt'):
+            # load cached data
+            self.__data += yaml.safe_load(open(str(cached)).read())
 
     # queries amadeus for prices
     def __amadeus_client(self):
