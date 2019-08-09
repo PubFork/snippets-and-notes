@@ -26,7 +26,7 @@ class FlightTracker(object):
         if Path(cache).is_file():
             # load cached file for today's prices
             print('Using cached data retrieved today for prices.')
-            self.__data = yaml.safe_load(open(cache).read())
+            self.__data = []
         else:
             # query and store response data
             print('Querying Amadeus endpoint for today\'s prices.')
@@ -57,25 +57,33 @@ class FlightTracker(object):
             departureDate=self.__depart
         )
 
-        return response.data
+        # run returned query data through preferences filter
+        data = self.__filter_data(response.data)
 
-    # TODO: need to output retrieval date for each set of prices
-    # displays history of prices for selected destination and depart date
-    def display_flights(self):
+        return data
+
+    # filter the results from amadeus for preferences (currently hardcoded delta and direct)
+    def __filter_data(self, data):
         # initialize filtered array of offers
         filtered = []
 
         # iterate through retrieved offers
-        for offer in self.__data:
+        for offer in data:
             # add offer if direct flight and carrier is delta
             if len(offer['offerItems'][0]['services'][0]['segments']) == 1 and offer['offerItems'][0]['services'][0]['segments'][0]['flightSegment']['carrierCode'] == 'DL':
                 filtered.append(offer['offerItems'][0])
 
+        return filtered
+
+
+    # TODO: need to output retrieval date for each set of prices
+    # displays history of prices for selected destination and depart date
+    def display_flights(self):
         # output origin, dest, date
         print('Origin:', 'ATL', 'Destination:', self.__dest, 'Date:', self.__depart, 'Today:', date.today())
 
         # output time and price
-        for offer in filtered:
+        for offer in self.__data:
             # easier to read
             depart = offer['services'][0]['segments'][0]['flightSegment']['departure']['at']
             depart_time = re.sub(r'-.*', '', re.sub(r'.*T', '', depart))
