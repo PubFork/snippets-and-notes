@@ -1,4 +1,4 @@
-#TODO: refactor methods including having filter multi-call possible; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas?
+#TODO: refactor methods; gui for inputs (see constants below), kv of dest-depart for matrix of possibilities, availability might be nice, https://amadeus4dev.github.io/amadeus-python/#shopping-hotels; use pandas (probably invevitable given desire for sorting functionality)?
 
 import re
 from pathlib import Path
@@ -30,10 +30,10 @@ class FlightTracker(object):
         else:
             # query and store response data
             print('Querying Amadeus endpoint for today\'s prices.')
-            self.__data = self.__amadeus_client()
+            today_data = self.__amadeus_client()
 
-            # cache response data
-            open(cache, 'w+').write(yaml.dump(self.__data))
+            # cache response data; TODO: store retrieval date
+            open(cache, 'w+').write(yaml.dump(today_data))
 
         # add in additional cached data
         for cached in Path('.').glob(f"{self.__dest}-{self.__depart}-*.txt"):
@@ -41,6 +41,8 @@ class FlightTracker(object):
             cached_data = open(str(cached)).read()
             # load cached data from yaml and add to data dict
             self.__data.extend(yaml.safe_load(cached_data))
+
+        #self.__data = self.__data.sort(key=lambda offer: offer['services'][0]['segments'][0]['flightSegment']['number'])
 
     # queries amadeus for prices
     def __amadeus_client(self):
@@ -73,13 +75,15 @@ class FlightTracker(object):
             if len(offer['offerItems'][0]['services'][0]['segments']) == 1 and offer['offerItems'][0]['services'][0]['segments'][0]['flightSegment']['carrierCode'] == 'DL':
                 filtered.append(offer['offerItems'][0])
 
+        # TODO: sort by number
+
         return filtered
 
 
     # TODO: need to output retrieval date for each set of prices
     # displays history of prices for selected destination and depart date
     def display_flights(self):
-        # output origin, dest, date
+        # output origin, dest, date; TODO: output retrieval date and not today
         print('Origin:', 'ATL', 'Destination:', self.__dest, 'Date:', self.__depart, 'Today:', date.today())
 
         # output time and price

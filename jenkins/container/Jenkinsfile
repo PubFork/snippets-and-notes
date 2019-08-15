@@ -266,11 +266,11 @@ pipeline {
             print 'Creating interactive promotion request for image to higher lifecycle repository.'
             // create interactive promotion request
             promotionConfig = [
-              'buildName' : buildInfo.name,
-              'buildNumber' : buildInfo.number,
-              'targetRepo' : 'docker-preprod',
-              'sourceRepo' : params.TARGET_REPO,
-              'comment' : 'Promote image upward when application finishes testing.',
+              'buildName': buildInfo.name,
+              'buildNumber': buildInfo.number,
+              'targetRepo': 'docker-preprod',
+              'sourceRepo': params.TARGET_REPO,
+              'comment': 'Promote image upward when application finishes testing.',
               'includeDependencies': false,
             ]
             Artifactory.addInteractivePromotion(server: artServer, promotionConfig: promotionConfig, displayName: "${params.APP} version ${params.VERSION} image promotion to higher lifecycle registry.")
