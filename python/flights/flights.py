@@ -18,6 +18,7 @@ class FlightTracker(object):
         # set instance vars
         self.__dest = dest
         self.__depart = depart
+        self.__data = []
 
         # set cache name
         cache = f"{self.__dest}-{self.__depart}-{date.today()}.txt"
@@ -26,14 +27,14 @@ class FlightTracker(object):
         if Path(cache).is_file():
             # load cached file for today's prices
             print('Using cached data retrieved today for prices.')
-            self.__data = []
         else:
             # query and store response data
             print('Querying Amadeus endpoint for today\'s prices.')
             today_data = self.__amadeus_client()
 
-            # cache response data; TODO: store retrieval date
-            open(cache, 'w+').write(yaml.dump(today_data))
+            # cache date and response data
+            open(cache, 'w').write(yaml.dump([date.today()]))
+            open(cache, 'a').write(yaml.dump(today_data))
 
         # add in additional cached data
         for cached in Path('.').glob(f"{self.__dest}-{self.__depart}-*.txt"):
@@ -83,11 +84,16 @@ class FlightTracker(object):
     # TODO: need to output retrieval date for each set of prices
     # displays history of prices for selected destination and depart date
     def display_flights(self):
-        # output origin, dest, date; TODO: output retrieval date and not today
-        print('Origin:', 'ATL', 'Destination:', self.__dest, 'Date:', self.__depart, 'Today:', date.today())
+        # output origin, dest, date
+        print('Origin:', 'ATL', '\tDestination:', self.__dest, '\tDate:', self.__depart)
 
         # output time and price
         for offer in self.__data:
+            # if element is string then it is the retrieval date
+            if isinstance(offer, str):
+                print('Retrieval Date:', offer)
+                continue
+
             # easier to read
             depart = offer['services'][0]['segments'][0]['flightSegment']['departure']['at']
             depart_time = re.sub(r'-.*', '', re.sub(r'.*T', '', depart))
@@ -95,7 +101,7 @@ class FlightTracker(object):
             number = offer['services'][0]['segments'][0]['flightSegment']['number']
             plane = offer['services'][0]['segments'][0]['flightSegment']['aircraft']['code']
             # output info
-            print('Number:', number, 'Departure Time:', depart_time, 'Price:', price, 'Plane:', plane)
+            print('Number:', number, '\tDeparture Time:', depart_time, '\tPrice:', price, '\tPlane:', plane)
 
 
 # main method
