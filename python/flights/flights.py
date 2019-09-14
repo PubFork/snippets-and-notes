@@ -14,7 +14,7 @@ class FlightTracker(object):
     currently assume origin is atl, carrier is dl, and segments is 1"""
 
     # constructor
-    def __init__(self, dest='MIA', depart='2019-12-23'):
+    def __init__(self, dest='MIA', depart='2019-12-24'):
         # set instance vars
         self.__dest = dest
         self.__depart = depart
@@ -31,9 +31,9 @@ class FlightTracker(object):
             # query and store response data
             print('Querying Amadeus endpoint for today\'s prices.')
             today_data = self.__amadeus_client()
+            today_data.insert(0, date.today().strftime("%B %d %Y"))
 
             # cache date and response data
-            open(cache, 'w').write(yaml.dump([date.today()]))
             open(cache, 'a').write(yaml.dump(today_data))
 
         # add in additional cached data
@@ -81,7 +81,6 @@ class FlightTracker(object):
         return filtered
 
 
-    # TODO: need to output retrieval date for each set of prices
     # displays history of prices for selected destination and depart date
     def display_flights(self):
         # output origin, dest, date
