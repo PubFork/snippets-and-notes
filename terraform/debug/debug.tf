@@ -1,8 +1,12 @@
 # for testing functions etc. resolved assigned values
 variable "test" {
-  default = "super$ecret*variable"
+  default = "'weird#password"
 }
 
 output "test_output" {
-  value = "${var.test}"
+  value = "${replace(var.test, "/(`|#|'|\")/", "`$1")}"
+}
+
+output "other_output" {
+  value = "${var.test}andotherstuff"
 }
