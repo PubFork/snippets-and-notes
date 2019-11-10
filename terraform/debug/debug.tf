@@ -10,3 +10,15 @@ output "test_output" {
 output "other_output" {
   value = "${var.test}andotherstuff"
 }
+
+variable "count" {
+  default = 8
+}
+
+variable "list_a" {
+  default = ["app01", "app02"]
+}
+
+output "list_join" {
+  value = "${join(".domain,", var.list_a)}"
+}
