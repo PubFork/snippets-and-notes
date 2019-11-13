@@ -8,6 +8,7 @@
     "instance_type": "c4.large",
     "app_version": "1.0.0",
     "ami_type": "base",
+    "ssh_keypair_name": "dev-keypair",
     "puppet_version": "5.5.8"
   },
   "builders": [{
@@ -47,6 +48,8 @@
     "winrm_username": "Administrator",
     "winrm_use_ssl": false,
     "winrm_insecure": true,
+    "ssh_keypair_name": "{{user `ssh_keypair_name`}}",
+    "ssh_private_key_file": "/root/.ssh/keypair.pem",
     "disable_stop_instance": true,
     "ami_name": "app-{{user `ami_type`}}-{{user `app_version`}}-{{timestamp}}",
     "launch_block_device_mappings": [{
