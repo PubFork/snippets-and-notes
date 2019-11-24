@@ -46,6 +46,26 @@ command = case params[:action]
           else raise Puppet::Error, _("#{params[:action]} is not a valid action or action was not set!")
           end
 
+# if the action is 'set' we need to ensure the value is not above the maximum
+if params[:action] == 'set'
+  # check if setting sga or pga value and validate if so
+  if params[:oracle_param] =~ %r{([sp]ga)_target}
+    # grab output of max value
+    max_output = Open3.capture2("/sbin/runuser -l #{params[:os_user]} -c \"echo 'show parameter #{Regexp.last_match(1)}_max_size;' | sqlplus -S / as sysdba\"")[0]
+
+    # make target and max values proper floats
+    targ_num = %r{(\d+)}.match(params[:param_value])[1].to_f
+    begin
+      max_num = %r{(\d+)[KMG]}.match(max_output)[1].to_f
+    rescue NoMethodError
+      raise Puppet::Error, _('There are issues with the current setting of the max_size in the Oracle database. Try the show action to help diagnose the Oracle issues.')
+    end
+
+    # prevent increasing the target value past the max value if requested
+    raise Puppet::Error, _("The specified #{params[:oracle_param]} #{targ_num} is greater than the maximum value #{max_num}!") if targ_num > max_num
+  end
+end
+
 # run sqlplus system command
 stdout = Open3.capture2(command)[0]
 
