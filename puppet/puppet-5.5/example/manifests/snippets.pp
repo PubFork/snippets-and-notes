@@ -20,6 +20,7 @@ $version_array = split($version, '\.')
 $maj_version = $version[0, 2]
 
 $pkg_version = regsubst($version, '-', '.')
+$versionzip = regsubst($version, /\./, '_', 'G')
 
 transition { 'stop the service':
   resource   => Service['the service'],

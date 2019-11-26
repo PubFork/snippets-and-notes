@@ -17,3 +17,5 @@
 		<identity impersonate="false" userName="XYZ\AppUser<%= @instance[0].upcase %>_<%= @facts['hostname'].gsub('-', '').gsub('app', '').upcase %>" password="password" />
 	</system.web>
 </configuration>
+
+LICENSE.PATH=<%= scope['module::class'] %>
