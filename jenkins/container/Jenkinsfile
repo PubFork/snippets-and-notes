@@ -6,7 +6,7 @@
 //TODO: input params for build/run args?
 //TODO: pull stuff out of script blocks if unnecessary
 
-@Library('jenkins-devops-libs@v1.2.1')_
+@Library('jenkins-devops-libs@v1.4.0')_
 
 pipeline {
   agent any
@@ -179,7 +179,7 @@ pipeline {
             script {
               // grab the repository digest for the image
               print 'Gathering repo digest and storing in build info in Artifactory.'
-              repoDigest = sh(returnStdout: true, script: "docker inspect -f '{{index .RepoDigests 0}}' ${image.imageName()}").trim()
+              repoDigest = sh(label: 'Obtain Image Repository Digest', returnStdout: true, script: "docker inspect -f '{{index .RepoDigests 0}}' ${image.imageName()}").trim()
               // add digest property to build info manifest artifact
               //TODO: this does not modify the object as desired
               buildInfo.repoDigest = repodigest
@@ -198,7 +198,7 @@ pipeline {
             script {
               // grab the repository digest for the image
               print 'Gathering repo digest.'
-              repoDigest = sh(returnStdout: true, script: "docker inspect -f '{{index .RepoDigests 0}}' ${image.imageName()}").trim()
+              repoDigest = sh(label: 'Obtain Image Repository Digest', returnStdout: true, script: "docker inspect -f '{{index .RepoDigests 0}}' ${image.imageName()}").trim()
               // TODO: push digest in custom registry
               print "Repo Digest is: ${repoDigest}"
               repoDigest = null
@@ -217,15 +217,15 @@ pipeline {
     }
     stage('Scan Docker Image') {
       parallel {
-        stage('JFrog Xray') {
+        stage('JFrog XRay') {
           when { expression { return artifactory } }
           steps {
             script {
               // scan image for vulnerabilities
               print 'Scanning Docker build with XRay. Failure will trigger build failure with displayed errors. Successful results will be displayed as info.'
               scanConfig = [
-                'buildName' : buildInfo.name,
-                'buildNumber' : buildInfo.number
+                'buildName':   buildInfo.name,
+                'buildNumber': buildInfo.number
               ]
               xrayResults = xrayScanBuild(scanConfig)
               print xrayResults as String
@@ -266,14 +266,17 @@ pipeline {
             print 'Creating interactive promotion request for image to higher lifecycle repository.'
             // create interactive promotion request
             promotionConfig = [
-              'buildName': buildInfo.name,
-              'buildNumber': buildInfo.number,
-              'targetRepo': 'docker-preprod',
-              'sourceRepo': params.TARGET_REPO,
-              'comment': 'Promote image upward when application finishes testing.',
-              'includeDependencies': false,
+              buildName:           buildInfo.name,
+              buildNumber:         buildInfo.number,
+              targetRepo:          'docker-preprod',
+              sourceRepo:          params.TARGET_REPO,
+              comment:             'Promote image upward when application finishes testing.',
+              includeDependencies: false,
             ]
-            Artifactory.addInteractivePromotion(server: artServer, promotionConfig: promotionConfig, displayName: "${params.APP} version ${params.VERSION} image promotion to higher lifecycle registry.")
+            Artifactory.addInteractivePromotion(
+              server:          artServer,
+              promotionConfig: promotionConfig,
+              displayName:     "${params.APP} version ${params.VERSION} image promotion to higher lifecycle registry.")
           }
         }
       }
@@ -291,7 +294,7 @@ pipeline {
         dir(params.BRANCH) {
           script {
             // ensure helm and tiller are setup
-            helm.setup('2.12.3', '/usr/bin')
+            helm.setup('2.14.3', '/usr/bin')
             // circumventing closure scope issue
             def localParams = params
             // deploy application to kubernetes cluster
@@ -320,12 +323,16 @@ pipeline {
     failure {
       print 'Job failed.'
       // notify slack and email on failure
-      slackSend(channel: SLACK_CHAN,
-        color: 'warning',
-        message: "Job failed for ${env.JOB_NAME}/${env.JOB_NAME} at ${env.JOB_URL}.")
-      mail(to: params.MAIL_ADD,
+      slackSend(
+        channel: params.SLACK_CHAN,
+        color:   'warning',
+        message: "Job failed for ${env.JOB_NAME}/${env.JOB_NAME} at ${env.JOB_URL}."
+      )
+      mail(
+        to:      params.MAIL_ADD,
         subject: "Failure: ${env.BUILD_TAG}",
-        body: "Job failed for ${env.JOB_NAME}/${env.JOB_NAME} at ${env.JOB_URL}.")
+        body:    "Job failed for ${env.JOB_NAME}/${env.JOB_NAME} at ${env.JOB_URL}."
+      )
     }
     always {
       // remove built docker image and prune system

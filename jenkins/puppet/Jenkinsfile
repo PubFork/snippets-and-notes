@@ -1,5 +1,5 @@
 // pdk test unit definitely going slowly for some reason
-@Library('jenkins-devops-libs@v1.2.1')_
+@Library('jenkins-devops-libs@v1.4.0')_
 
 pipeline {
   agent none
@@ -88,15 +88,12 @@ pipeline {
         print 'Deploying code with Code Manager.'
 
         script {
-          def localParams = params
-          def localEnv = env
-
-          puppet.code_deploy {
-            environments = [localParams.BRANCH]
-            servers      = [localParams.MASTER]
-            token        = "${localEnv.HOME}/.puppetlabs/token"
-            wait         = true
-          }
+          puppet.code_deploy(
+            environments: [params.BRANCH],
+            servers:      [params.MASTER],
+            token:        "${env.HOME}/.puppetlabs/token",
+            wait:         true
+          )
         }
       }
       post { success {
@@ -114,17 +111,14 @@ pipeline {
         print 'Executing Puppet Agent on server.'
 
         script {
-          def localParams = params
-          def localEnv = env
-
-          puppet.task {
-            description = "apply ${module} from ${params.BRANCH} on ${params.SERVER}"
-            environment = [localParams.BRANCH]
-            scope       = [localParams.SERVER]
-            server      = localParams.MASTER
-            task        = 'puppet'
-            token       = "${localEnv.HOME}/.puppetlabs/token"
-          }
+          puppet.task(
+            description: "apply ${module} from ${params.BRANCH} on ${params.SERVER}",
+            environment: [params.BRANCH],
+            scope:       [params.SERVER],
+            server:      params.MASTER,
+            task:        'puppet',
+            token:       "${env.HOME}/.puppetlabs/token"
+          )
         }
       }
       post { success {
