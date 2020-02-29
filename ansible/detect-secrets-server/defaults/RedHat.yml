@@ -1,0 +1,7 @@
+---
+packages:
+- git
+- cronie
+- openssh-server
+- python
+- python-pip

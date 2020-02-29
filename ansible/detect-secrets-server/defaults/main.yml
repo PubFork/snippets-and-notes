@@ -1,0 +1,11 @@
+---
+org: mschuchard
+
+repositories:
+- snippets-and-notes
+
+home_dir: "{{ user_dir }}"
+
+detect_secrets_user: "{{ effective_user_id }}"
+detect_secrets_group: "{{ effective_group_id }}"
+detect_secrets_rootdir: "{{ home_dir }}/.detect-secrets-server"

@@ -1,0 +1,7 @@
+---
+packages:
+- git
+- cron
+- ssh
+- python
+- python-pip

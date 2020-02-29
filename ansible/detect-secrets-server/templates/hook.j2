@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""
+Output hook for transmitting Detect Secrets Server information to PagerDuty.
+"""
+import json
+import sys
+import pypd
+
+
+def main():
+    """Main function providing necessary functionality."""
+    # parse the json returned secrets data
+    secrets_data = json.loads(sys.argv[2])
+    # iterate through the discovered files and issues
+    for file, issues in secrets_data.items():
+        # iterate through the discovered issues per file
+        for issue in issues:
+            # create a pagerduty event with information from returned data
+            pypd.EventV2.create(data={
+                'routing_key': '{{ integration_token }}',
+                'event_action': 'trigger',
+                'payload': {
+                    'summary': 'Secret of type ' + issue['type'] + ' found in pushed source code.',
+                    'severity': 'error',
+                    'source': 'Repository: ' + sys.argv[1] + ', in file: ' + file,
+                    'component': 'Detect Secrets Server',
+                    'custom_details': {
+                        'line_number': issue['line_number'],
+                        'latest_commit_author': issue['author']
+                    },
+                },
+                'links': [{
+                    'href': 'https://github.com/' + sys.argv[1] + '/blob/master/' + file + '#L' + str(issue['line_number']),
+                    'text': 'Source code line on Github'
+                }],
+            })
+
+
+if __name__ == '__main__':
+    main()

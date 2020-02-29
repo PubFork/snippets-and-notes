@@ -1,0 +1,45 @@
+---
+- name: include vars for package names based on os family
+  include_vars:
+    file: "{{ os_family }}.yml"
+
+- name: ensure package dependencies are installed
+  package:
+    name: "{{ packages }}"
+    state: present
+
+- name: ensure python module dependencies are installed
+  pip:
+    name:
+    - detect-secrets-server
+    - pypd
+    state: present
+
+- name: setup ssh authentication for scanning
+  copy:
+    dest: "{{ home_dir }}/.ssh/{{ item }}"
+    source: files/{{ item }}
+    owner: "{{ detect_secrets_user }}"
+    group: "{{ detect_secrets_group }}"
+    mode: '0600'
+  with_items:
+  - config
+  - id_rsa
+
+- name: add the repositories to scan
+  command: detect-secrets-server add --crontab "@hourly" git@github.com:{{ org }}/{{ item }}
+  args:
+    creates: "{{ detect_secrets_rootdir }}/repos/*/{{ item }}"
+  with_items: "{{ repositories }}"
+
+- name: copy the output hook script
+  template:
+    dest: "{{ detect_secrets_rootdir }}/hook.py"
+    source: templates/hook.j2
+    owner: "{{ detect_secrets_user }}"
+    group: "{{ detect_secrets_group }}"
+    mode: '0744'
+
+# task is intrinsically idempotent
+- name: enable detect secrets persistent scanning with output hook
+  command: detect-secrets-server install --output-hook {{ detect_secrets_rootdir }}/hook.py cron
