@@ -1,0 +1,202 @@
+# https://learn.hashicorp.com/vault/certification/vault-associate
+# https://learn.hashicorp.com/vault/getting-started/dev-server
+---
+- name: do basic vault stuff
+  hosts: localhost
+
+  environment:
+    # in real life we grab the api address output of the vault server command
+    VAULT_ADDR: 'http://127.0.0.1:8200'
+
+  tasks:
+  - name: start vault as dev server in background
+    command: nohup vault server -dev &
+    poll: 0
+    register: vault_init
+    # stdout contains:
+    # Unseal Key: 4K/aOlDIge/uTaDMfiwv77K95NzdFPBLie7pczfSGGE=
+    # Root Token: s.Vo3WUZ0BWg20Sg0CuTGGrTi
+
+  - name: generate unseal keys for keybase users
+    command: vault operator init -key-shares=3 -key-threshold=2 -pgp-keys="keybase:userone,keybase:usertwo,keybase:userthree"
+
+  - name: generate unseal keys for gpg users
+    command: vault operator init -key-share=3 -key-threshold=2 -pgp-keys="userone.asc,usertwo.asc,userthree.asc"
+
+  - name: enable the userpass auth method at path my-auth
+    command: vault write sys/auth/my-auth type=userpass
+
+  - name: login to vault and authenticate with token
+    command: vault login token=<token>
+
+  - name: help to find proper endpoints (github auth example)
+    command: vault path-help auth/github/login
+
+  - name: create a root token with the permission of a quorum of unseal key holders
+    command: vault operator generate-root
+
+  - name: renew a token with ttl
+    command: vault token renew
+
+  - name: view all permissions grtanted by default policy on vault install
+    command: vault read sys/policy/default
+
+  - name: disable attachment of the default policy
+    command: vault token create -no-default-policy
+
+  - name: same as above but with api
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/token/create
+      method: POST
+      headers:
+        'X-Vault-Token': <token>
+      body:
+        no_default_policy: 'true'
+
+  - name: revoke root token after initial configuration and setup
+    command: vault token revoke <token>
+
+  - name: same as above but with api
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/token/revoke
+      method: POST
+      headers:
+        'X-Vault-Token': <token>
+      body:
+        token: '<token>'
+
+  - name: list all registered policies in vault
+    command: vault read sys/policy
+
+  - name: same as above but with api
+    uri:
+      url: http://127.0.0.1:8200/v1/sys/policy
+      headers:
+        'X-Vault-Token': <token>
+
+  - name: create a new policy in vault
+    command: vault policy write policy-name policy-file.hcl
+
+  - name: same as above but with api
+    uri:
+      url: http://127.0.0.1:8200/v1/sys/policy/policy-name
+      method: POST
+      headers:
+        'X-Vault-Token': <token>
+      body:
+        policy: 'path "..." {...}'
+
+# update a policy via the same procedure, but target an existing policy name
+
+  - name: delete an existing policy
+    command: vault delete sys/policy/policy-name
+
+  - name: same as above but with api
+    uri:
+      url: http://127.0.0.1:8200/v1/sys/policy/policy-name
+      method: DELETE
+      headers:
+        'X-Vault-Token': <token>
+
+  - name: create a user with a list of associated policies
+    command: vault write auth/userpass/users/me password=secret policies="dev-readonly,logs"
+
+  - name: login and receive a token which has the policies attached
+    command: vault login -method=userpass username=me
+
+  - name: tokens are associated with policies at runtime
+    command: vault token create -policy=dev-readonly -policy=logs
+
+  - name: write data to vault
+    command: vault kv put secret/passwrd value=itsasecret
+
+  - name: read json from stdin
+    command: echo -n '{"value":"itsasecret"}' | vault kv puet secret/password -
+
+  - name: read just a value from stdin
+    command: echo -n "itsasecret" | vault kv put secret/passwrd value=-
+
+  - name: read data from a file on disk
+    command: vault kv put secret/password @data.json
+
+  - name: specify the contents of a value as a file
+    command: vault kv put secret/password value=@data.txt
+
+  - name: read back data
+    command: vault kv get secret/password
+
+  - name: clear the vault agent cache
+    uri:
+      url: http://127.0.0.1:1234/agent/v1/cache-clear
+      method: POST
+      body:
+        type: token
+        value: 'hash'
+
+  - name: approle authentication (need below config steps first though)
+    command: vault write auth/approle/login role_id="hash" secret_id="hash"
+
+  - name: same but with rest api
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/approle/login
+      method: POST
+      data:
+        role_id: hash
+        secret_id: hash
+
+  - name: enable approle auth method
+    command: vault auth enable approle
+
+  - name: rest api
+    uri:
+      url: http://127.0.0.1:8200/v1/sys/auth/approle
+      method: POST
+      headers:
+        'X-Vault-Token': 'hash'
+      data:
+        type: approle
+
+  - name: create a named role
+    command: vault write auth/approle/role/my-role secret_id_ttl=10m token_num_uses=10 token_ttl=20m token_max_ttl=30m secret_id_num_uses=40
+
+  - name: rest api but with policies (not default)
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/approle/role/my-role
+      method: POST
+      headers:
+        'X-Vault-Token': token
+      data:
+        policies: 'dev-policy,test-policy'
+
+  - name: fetch the role id of the approle
+    command: vault read auth/approle/role/my-role/role-id
+
+  - name: rest api
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/approle/role/my-role/role-id
+      headers:
+        'X-Vault-Token': token
+
+  - name: get a secret id issued against the approle
+    command: vault write -f auth/approle/role/my-role/secret-id
+
+  - name: rest api
+    uri:
+      url: http://127.0.0.1:8200/v1/auth/approle/role/my-role/secret-id
+      method: POST
+      headers:
+        'X-Vault-Token': token
+
+  - name: mount a registered plugin
+    command: vault secrets enable -path=my-secrets passthrough-plugin
+
+  - name: retrieve mfa credentials
+    uri:
+      url: http://127.0.0.1:8200/v1/secret/foo
+      headers:
+        'X-Vault-Token': <token>
+        'X-Vault-MFA':
+          <mfa_method_name>: <value>
+
+  - name: kill the vault server
+    command: killall vault

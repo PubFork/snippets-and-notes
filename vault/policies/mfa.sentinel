@@ -1,0 +1,14 @@
+# must be configured in root namespace, but can be referenced from policies in any namespace and can be tied to a mount accessor in any namespace
+import "mfa"
+
+has_mfa = rule {
+  mfa.methods.duons1.valid
+}
+
+has_mfa2 = rule {
+  mfa.methods.duons2.valid
+}
+
+main = rule {
+  has_mfa or has_mfa2
+}
