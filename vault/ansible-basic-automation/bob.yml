@@ -1,0 +1,21 @@
+---
+- name: create user bob
+  command: vault write auth/userpass/users/bob password=training policies=training
+
+- name: create user bsmith
+  command: vault write auth/userpass/users/bob password=training policies=team-qa
+
+- name: discover mount accessor for userpass auth method
+  command: vault auth list -detailed
+
+- name: create entity for bob smith
+  command: vault write identity/entity name='bob-smith' policies=base metadata=organization='ACME Inc.' metadata=team='QA'
+
+- name: add the user bob to the bob-smith entity by creating an entity alias
+  command: vault write identity/entity-alias name='bob' canonical_id=<entity_id> mount_accessor=<userpass_accessor>
+
+- name: add user bsmith to the bob-smith entity
+  command: vault write identity/entity-alias name='bsmith' canonical_id=<entity_id> mount_accessor=<userpass_accessor>
+
+- name: review entity details
+  command: vault read identity/entity/id/<entity_id>

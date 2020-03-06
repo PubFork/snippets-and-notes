@@ -1,0 +1,129 @@
+---
+- name: start vault in dev server mode
+  command: vault server -dev
+
+- name: write a secret
+  command: vault kv put secret/hello foo=world excited=yes
+
+- name: retrieve a secret
+  command: vault kv get secret/hello
+
+- name: print only the value of a given field
+  command: vault kv get -field=excited secret/hello
+
+- name: json output and parse the secret
+  command: vault kv get -format=json secret/hello | jq -r .data.data.excited
+
+- name: delete a secret
+  command: vault kv delete secret/hello
+
+- name: enable a secrets engine at another path (side note is path defaults to name of secrest engine)
+  command: vault secrets enable -path=kv kv
+
+- name: verify secrets engine enabled
+  command: vault secrets list
+
+- name: add a secret
+  command: vault kv put kv/hello target=world
+
+- name: add a secret at a different path
+  command: vault kv put kv/my-secret value="s3c(eT"
+
+- name: list the secret keys
+  command: vault kv list kv/
+
+- name: retrieve a secret
+  command: vault kv get kv/my-secret
+
+- name: delete the secret
+  command: vault kv delete kv/my-secret
+
+- name: disable the enabled secrets engine
+  command: vault secrets disable kv/
+
+- name: enable the aws secrets engine
+  command: vault secrets enable aws
+
+- name: configure engine to authenticate and communicate with aws
+  command: vault kv write aws/config/user access_key=<key> secret_key=<key> region=us-east-1
+
+- name: map iam policy to a vault role (not aws role, but functionally similar once interacting with aws); policy enables ec2 permissions
+  command: vault write aws/roles/my-role credential_type=iam_user policy_document=-<<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1426528957000",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+
+- name: generate iam user and access credentials for vault role
+  command: vault read aws/creds/my-role
+
+- name: revoke above access and incidentally remove iam user
+  command: vault revoke aws/creds/my-role/<lease_id>
+
+- name: get help for a specific role path
+  command: vault path-help aws/creds/my-nonexistent-role
+
+- name: write a policy
+  command: vault policy write simple-modern simple_modern.hcl
+
+- name: list vault policies
+  command: vault policy list
+
+- name: view contents of a policy
+  command: vault policy read simple-modern
+
+- name: create a token and assign it to the policy
+  command: vault token create -policy=simple-modern
+
+- name: authenticate with token associated with policy
+  command: vault login <token above>
+
+- name: put secret in permitted path
+  command: vault kv put secret/creds password=mypassword
+
+- name: but not allowed to do this now
+  command: vault kv put secret/foo key=value
+
+- name: map authentication identity to core policy
+  command: vault write auth/github/map/teams/default value=my-policy
+
+- name: create a child token that inherits current token policies
+  command: vault token create
+
+- name: revoke a token
+  command: vault token revoke <token>
+
+- name: enable github authentication
+  command: vault auth enable -path=github github
+
+- name: pull authentication data from an organization in github
+  command: vault write auth/github/config organization=<org_name>
+
+- name: map policies to a team within the organization
+  command: vault write auth/github/map/teams/my-team value=default,simple-modern
+
+- name: list authentication methods
+  command: vault auth list
+
+- name: learn more about authentication method
+  command: vault auth help github
+
+- name: login via github auth
+  command: vault login -method=github token=<token>
+
+- name: revoke logins from an auth method
+  command: vault token revoke -mode=path auth/github
+
+- name: disable the github auth method
+  command: vault auth disable github

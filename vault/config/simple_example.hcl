@@ -7,6 +7,7 @@ storage "consul" {
   tls_key_file   = "/etc/pem/vault.key"
 }
 
+# at least one listener required for web ui
 listener "tcp" {
   address       = "127.0.0.1:8200"
   tls_disable   = 1
@@ -35,4 +36,5 @@ seal "awskms" {
   endpoint   = "https://vpce-hash.kms.us-east-1.vpce.amazonaws.com"
 }
 
+# https://127.0.0.1:8200/ui; also accessible at any DNS entry that resolves to that IP address, such as the Consul service address (https://vault.service.consul:8200/ui)
 ui = true

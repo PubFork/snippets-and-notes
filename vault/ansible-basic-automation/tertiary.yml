@@ -1,0 +1,22 @@
+---
+- name: start consul agent
+  command: consul agent -dev
+
+- name: start vault server
+  command: vault server -config=minimal.hcl
+
+- name: initialize vault (once per cluster)
+  command: vault operator init
+
+- name: unseal vault
+  command: vault operator unseal {{ item }}
+  with_items:
+  - unseal key 1
+  - unseal key 2
+  - unseal key 3
+
+- name: authenticate with root token
+  command: vault login <root token>
+
+- name: reseal vault
+  command: vault operator seal

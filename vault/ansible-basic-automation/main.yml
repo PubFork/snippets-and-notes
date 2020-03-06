@@ -1,5 +1,5 @@
 # https://learn.hashicorp.com/vault/certification/vault-associate
-# https://learn.hashicorp.com/vault/getting-started/dev-server
+# https://learn.hashicorp.com/vault/identity-access-management/iam-identity#api-call-using-curl
 ---
 - name: do basic vault stuff
   hosts: localhost
@@ -7,6 +7,7 @@
   environment:
     # in real life we grab the api address output of the vault server command
     VAULT_ADDR: 'http://127.0.0.1:8200'
+    VAULT_DEV_ROOT_TOKEN_ID: '<token>'
 
   tasks:
   - name: start vault as dev server in background
@@ -107,6 +108,26 @@
   - name: tokens are associated with policies at runtime
     command: vault token create -policy=dev-readonly -policy=logs
 
+  - name: list capabilities of the token for a path
+    command: vault token capabilities <token> sys/auth/approle
+
+  # capabilities-self endpoint for current token capabilities on path
+  - name: same but rest api
+    uri:
+      url: http://127.0.0.1:8200/v1/sys/capabilities
+      method: POST
+      headers:
+        'X-Vault-Token': '<token>'
+      body:
+        token: <token>
+        path: sys/auth/approle
+
+  - name: create token in vault ui
+    command: vault write auth/token/create policies=admin-policy
+
+  - name: list capabilities of token in vault ui
+    command: vault write sys/capabilities token=<token> path=sys/auth/approle
+
   - name: write data to vault
     command: vault kv put secret/passwrd value=itsasecret
 
@@ -140,7 +161,7 @@
     uri:
       url: http://127.0.0.1:8200/v1/auth/approle/login
       method: POST
-      data:
+      body:
         role_id: hash
         secret_id: hash
 
@@ -153,7 +174,7 @@
       method: POST
       headers:
         'X-Vault-Token': 'hash'
-      data:
+      body:
         type: approle
 
   - name: create a named role
@@ -165,7 +186,7 @@
       method: POST
       headers:
         'X-Vault-Token': token
-      data:
+      body:
         policies: 'dev-policy,test-policy'
 
   - name: fetch the role id of the approle
