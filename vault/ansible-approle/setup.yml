@@ -1,0 +1,63 @@
+---
+- name: setup vault server and approle for ansible
+  hosts: all, localhost
+  vars:
+    token: 's.fT0BbjvEKeSdHetG4NVcnsEy'
+
+  environment:
+    VAULT_ADDR: 'http://127.0.0.1:8200'
+    VAULT_DEV_ROOT_TOKEN_ID: "{{ token }}"
+
+  tasks:
+  - name: apply ansible vault policy
+    command: vault policy write ansible ansible.hcl
+
+  - name: write a secret
+    command: vault kv put secret/org/creds username=foo password=bar
+
+  - name: vault auth enable approle
+    command: vault auth enable approle
+
+  - name: create ansible approle
+    command: vault write auth/approle/role/ansible secret_id_ttl=30m  token_ttl=1m  token_max_tll=2m  policies='ansible'
+
+  - name: fetch the role id
+    uri:
+      url: 'http://127.0.0.1:8200/v1/auth/approle/role/ansible/role-id'
+      headers:
+        'X-Vault-Token': "{{ token }}"
+    register: role_id
+
+  - debug:
+      var: role_id.json.data.role_id
+
+  - name: create a secret id
+    uri:
+      url: 'http://127.0.0.1:8200/v1/auth/approle/role/ansible/secret-id'
+      method: POST
+      headers:
+        'X-Vault-Token': "{{ token }}"
+    register: secret_id
+
+  - debug:
+      var: secret_id.json.data.secret_id
+
+  - name: lookup username as ansible approle
+    shell: "echo {{ lookup('hashi_vault', 'secret=secret/data/org/creds:username auth_method=approle')}}"
+    environment:
+      VAULT_ROLE_ID: "{{ role_id.json.data.role_id }}"
+      VAULT_SECRET_ID: "{{ secret_id.json.data.secret_id }}"
+    register: username
+
+  - debug:
+      var: username
+
+  - name: lookup password as ansible approle
+    shell: "echo {{ lookup('hashi_vault', 'secret=secret/data/org/creds:password auth_method=approle')}}"
+    environment:
+      VAULT_ROLE_ID: "{{ role_id.json.data.role_id }}"
+      VAULT_SECRET_ID: "{{ secret_id.json.data.secret_id }}"
+    register: password
+
+  - debug:
+      var: password
