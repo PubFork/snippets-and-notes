@@ -1,0 +1,43 @@
+---
+# app needs read capability on secret/data/dev <-- apps.hcl
+
+- name: create apps policy
+  command: vault policy write apps apps.hcl
+
+- name: write test data at secret/dev
+  command: vault kv put secret/dev username=webapp password=password
+
+- name: generate token for apps using response wrapping ttl of 120s, and also token should have apps policy attached
+  command: vault token create -wrap-ttl=120 -policy=apps
+
+- name: create token with default policy
+  command: vault token create -policy=default
+
+- name: authenticate using generated token above
+  command: vault login <token>
+
+- name: unwrap the secret by passing wrapping token for apps
+  command: vault unwrap
+  environment:
+    VAULT_TOKEN: <wrap_token>
+
+# or
+
+- command: vault login <wrap_token>
+
+# or
+
+- command: vault unwrap <wrap_token>
+
+- name: login with unwrapped token for future requests
+  command: vault login <unwrap_token>
+
+# The cubbyhole secrets engine provides your own private secret storage space where no one else can read (including root).
+# The cubbyhole secrets engine is mounted at the cubbyhole/ prefix by default. The secrets you store in the cubbyhole/ path are tied to your token and all tokens are permitted to read and write to the cubbyhole secrets engine by the default policy.
+
+# cubbyhole is kv-v1
+- name: write test secrets to cubbyhole/private/
+  command: vault write cubbyhole/private/access-token token='r2r94f9h'
+
+- name: read the values back
+  command: vault read cubbyhole/private/access-token

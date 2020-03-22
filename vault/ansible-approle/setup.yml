@@ -9,6 +9,11 @@
     VAULT_DEV_ROOT_TOKEN_ID: "{{ token }}"
 
   tasks:
+  - name: install hvac pip module dependency for ansible vault module
+    pip:
+      name: hvac
+    delegate_to: localhost
+
   - name: apply ansible vault policy
     command: vault policy write ansible ansible.hcl
 

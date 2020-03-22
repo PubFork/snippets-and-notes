@@ -19,3 +19,39 @@
 
 - name: review entity details
   command: vault read identity/entity/id/<entity_id>
+
+- name: login as bob
+  command: vault login -method=userpass username=bob password=training
+
+- name: write secret to secret/test path as granted by test policy
+  command: vault kv put secret/test owner=bob
+
+- name: verify bob's token inherited the base policy because bob is a member of the bob-smith entity
+  command: vault token capabilities secret/data/training_test
+
+- name: verify cannot access team-qa because that is associated with a policy associated with bsmith
+  command: vault token capabilities secret/data/team-qa
+
+- name: create a new policy for team eng
+  command: vault policy write team-eng bob-team-eng.hcl
+
+- name: create internal group engineers, add bob-smith entity as a group member, and attach team-eng policy to group
+  command: vault write identity/group name=engineers policies=team-eng member_entity_id=<entity_id> metadata=team=Engineering metadata=region='North America'
+
+- name: create a new education policy
+  command: vault policy write education education.hcl
+
+- name: enable github auth method
+  command: vault auth enable github
+
+- name: retrieve the mount accessor for the github auth method
+  command: vault auth list -format=json
+
+- name: configure a point to your github organization
+  command: vault write auth/github/config organization=example-inc
+
+- name: create external group named education
+  command: vault write identity/group name=education policies=education type=external metadata=organization="Product Education"
+
+- name: create group alias where canonical_id is group id from external group and name is actual github team name (links external group and policy to github org)
+  command: vault write identity/group-alias name=training mount_accessor=<mount_accessor> canonical_id=<group_id>

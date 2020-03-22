@@ -1,5 +1,5 @@
 # https://learn.hashicorp.com/vault/certification/vault-associate
-# https://learn.hashicorp.com/vault/identity-access-management/iam-identity#api-call-using-curl
+# https://learn.hashicorp.com/vault/secrets-management/sm-dynamic-secrets
 ---
 - name: do basic vault stuff
   hosts: localhost

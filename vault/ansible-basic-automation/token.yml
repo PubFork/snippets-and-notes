@@ -1,0 +1,55 @@
+---
+- name: create a token with use limit
+  command: vault token create -policy=default -use-limit=2
+
+- name: lookup vault token (default is self token)
+  command: vault token lookup <token>
+  environment:
+    VAULT_TOKEN: <token>
+
+# after another command the token is no longer valid
+
+- name: create token named zabbix with period of 24 hours
+  command: vault write auth/token/roles/zabbix allowed_policies=default period='24h'
+
+- name: generate token for the zabbix role
+  command: vault token create -role=zabbix
+
+- name: renew token and extend ttl
+  command: vault token renew -increment=<extension> <token>
+
+- name: revoke token (can also be done with -accessor)
+  command: vault token revoke <token>
+
+- name: create short lived token
+  command: vault token create -ttl=60s
+
+- name: create orphan token (does not expire with parent)
+  command: vault token create -orphan
+
+- name: create a batch token (cannot from root token)
+  command: vault token create -type=batch -policy=test
+
+- name: after login with batch token, verify token has no cubbyhole
+  command: vault write cubbyhole/token value=abcdefg
+
+# batch token also cannot create children and cannot be revoked
+
+- name: view current settings on auth methods
+  command: vault auth list -detailed
+# or vault read sys/mounts/auth/token/tune
+
+- name: change token default ttl to six minutes and max ttl to twenty four hours
+  command: vault write sys/mounts/auth/token/tune default_lease_ttl=6m max_lease_ttl=24h
+
+- name: update zabbix role setting
+  command: vault write auth/token/roles/zabbix allowed_policies=default period='72h'
+
+- name: after enabling approle auth, create role for app specifying generated token should be periodic
+  command: vault write auth/approle/role/jenkins policies=jenkins period='72h'
+
+- name: generate batch token for approle
+  command: vault write auth/approle/role/shipping policies=shipping token_type=batch token_ttl='60s'
+
+- name: find out how many service tokens exist on a vault environment
+  command: vault read sys/internal/counters/tokens

@@ -1,0 +1,73 @@
+---
+- name: vault status confirms vault is uninitialized, so init it
+  command: vault operator init
+  # auto-unseals with AWS KMS
+  # login with root token
+
+  # scripted steps:
+  # Success! Enabled the kv secrets engine at: secret/
+  # Success! Data written to: secret/myapp/config
+  # Success! Uploaded policy: myapp
+  # Success! Enabled aws auth method at: aws/
+  # Success! Data written to: auth/aws/config/client
+  # Success! Data written to: auth/aws/role/dev-role-iam
+
+- name: check myapp policy
+  command: vault policy read myapp
+
+- name: check the secrets written at secret/myapp/config
+  command: vault kv get secret/myapp/config
+
+- name: run the vault agent with aws auto-auth config
+  command: vault agent -config=agent_aws.hcl -log-level=debug
+
+# without caching and with response-wrapping
+
+- name: execute 'vault unwrap' command on the response wrapped token
+  command: vault unwrap -field=token $(jq -r '.token' /home/ubuntu/vault-token-via-agent)
+  register: token
+
+- debug:
+    var: token
+
+- name: test to make sure that the token has the read permission on 'secret/myapp/config'
+  uri:
+    url: http://127.0.0.1:8200/v1/secret/myapp/config
+    headers:
+      'X-Vault-Token': "{{ token }}"
+
+# trying to unwrap again OR waiting longer than 5m ttl will throw an error
+
+# with caching and without response-wrapping
+
+- name: request an aws credential (auto-auth token used here)
+  command: vault read aws/creds/readonly
+
+# vault agent will manage the lifecycle of cached tokens and leases automatically
+# requesting the aws credential again will return the same credential
+
+- name: log in as user student via the agent with password password
+  command: vault login -method=userpass username=student password=password
+
+- name: create new token with ttl 12m using cached token for auth
+  command: vault token create -ttl=12m
+
+# token creation request will yield same token for consecutive requests
+# api requests need to hit the vault agent addr (proxy) and not the vault addr which is the listener tcp from the config
+# no X-Vault-Token required for api requests because auto_auth token used
+
+- name: manually evict a stale lease
+  uri:
+    url: $VAULT_AGENT_ADDR/agent/v1/cache-clear
+    method: POST
+    body:
+      type: lease # all to clear all cacked tokens and leases
+      value: aws/creds/readonly/<lease-id>
+
+- name: revoke a token and thereby evict the cached entries associated with the request
+  command: vault token revoke <token>
+
+- name: revoke all leases
+  command: vault lease revoke -prefix aws/creds/readonly
+
+# if ssrf protection enabled, all requests must have proper X-Vault-Request: true header
