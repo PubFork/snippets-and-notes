@@ -1,0 +1,65 @@
+---
+- name: enable transit secrets engine
+  command: vault secrets enable transit
+
+- name: create named encryption key
+  command: vault write -f transit/keys/my-key
+
+- name: encrypt some plaintext data (base64 encoded) using the /encrypt endpoint with a named key
+  command: vault write transit/encrypt/my-key plaintext=$(base64 <<< "my secret data")
+
+- name: decrypt a piece of data using the /decrypt endpoint with a named key
+  command: vault write transit/decrypt/my-key ciphertext=vault:v1:<hash>
+# result is base64 encoded
+
+- name: one-line decrypt into plaintext
+  command: vault write -field=plaintext transit/decrypt/my-key ciphertext=vault:v1:<hash> | base64 --decode
+
+- name: rotate the underlying encryption key, generate a new encryption key, and add it to the keyring for the named key
+  command: vault write -f transit/keys/my-key/rotate
+# future encryptions use new key, but old data can still be decrypted due to use of key ring
+
+- name: upgrade already-encrypted data to a new key
+  command: vault write transit/rewrap/my-key ciphertext=vault:v1:<hash>
+
+# new scenario
+
+- name: enable transit secrets engine
+  command: vault secrets enable transit
+
+- name: enable transit secrets engine at different path
+  command: vault secrets enable -path=encryption transit
+
+- name: create encryption key ring named orders
+  command: vault write transit/keys/orders
+
+- name: encrypt secret with encrypt endpoint
+  command: vault write transit/encrypt/orders plaintext=$(base64 <<< "1111")
+
+- name: decrypt the ciphertext
+  command: vault write transit/decrypt/orders ciphertext=v1:vault:<hash>
+
+- name: base64 decode the cipher text
+  command: base64 --decode <<< <encoded_text>
+
+- name: rotate the encryption key
+  command: vault write -f transit/keys/orders/rotate
+
+- name: encrypt another data with rotated key
+  command: vault write transit/encrypt/orders plaintext=$(base64 <<< "1234")
+
+- name: rewrap ciphertext with latest version (v2) of encryption key
+  command: vault write transit/rewrap/orders ciphertext=vault:v1:<hash>
+
+- name: rotate more
+  command: vault write -f transit/keys/orders/rotate
+
+- name: read the orders key information
+  command: vault read transit/keys/orders
+
+- name: enforce the use of the encryption key at version 5 or later to decrypt the data
+  command: vault write transit/keys/orders/config min_decryption_version=5
+  # can also allow delete and min encrypt version
+
+- name: view the datakey in plaintext
+  command: vault write -f transit/datakey/plaintext/orders

@@ -1,0 +1,32 @@
+---
+- name: enable the database secrets engine
+  command: vault secrets enable database
+
+- name: configure the database secrets engine using the postgresql-database-plugin
+  command: vault write database/config/postgresql plugin_name=postgresql-database-plugin allowed_roles=readonly connection_url=postgresql://root:rootpassword@localhost:5432/postgres?sslmode=disable
+
+- name:  create a vault role named readonly with default ttl one hour and max ttl of credential 24 hours
+  command: vault write database/roles/readonly db_name=postgresql creation_statements=@readonly.sql default_ttl=1h max_ttl=24h
+
+# readonly.sql: CREATE ROLE "{{name}}" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';
+# GRANT SELECT ON ALL TABLES IN SCHEMA public TO "{{name}}";
+
+- name: create database policy
+  command: vault policy write database database.hcl
+
+- name: create token with database policy attached
+  command: vault token create -policy=database
+
+- name: login with new token
+  commnand: vault login <token>
+
+- name: retrieve credentials (username and password)
+  command: vault read database/creds/readonly
+
+# new creds generated each time; each app instance can acquire unique set of db creds
+
+- name: renew lease for credentials
+  command: vault lease renew database/creds/readonly/<lease_id_suffix>
+
+- name: revoke the generated credentials
+  command: vault lease revoke database/creds/readonly/<lease_id_suffix>

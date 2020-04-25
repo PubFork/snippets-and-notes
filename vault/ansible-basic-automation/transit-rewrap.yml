@@ -1,0 +1,26 @@
+---
+- name: enable transit secrets engine
+  command: vault secrets enable transit
+
+- name: create encryption key to use for transit named my_app_key
+  command: vault write -f transit/keys/my_app_key
+
+- name: create rewrap-example policy
+  command: vault policy write rewrap-example rewrap-example.hcl
+
+- name: create a token associated with the rewrap-example policy
+  command: vault token create -policy=rewrap-example
+
+- name: run dotnet abnd enable interactions with vault
+  command: dotnet run
+  environment:
+    VAULT_TOKEN: <APP_TOKEN>
+    VAULT_ADDR: <VAULT_ADDRESS>
+    VAULT_TRANSIT_KEY: my_app_key
+    SHOULD_SEED_USERS: true
+
+- name: rotate my_app_key
+  command: vault write -f transit/keys/my_app_key/rotate
+
+- name: view key information
+  command: vault read transit/keys/my_app_key
