@@ -1,0 +1,29 @@
+# setup environment
+dist: bionic
+language: python
+cache: pip
+
+branches:
+  only:
+  - master
+
+notifications:
+  email: false
+
+git:
+  depth: 5
+
+# setup tests
+matrix:
+  include:
+  - os: linux
+    python: 3.7
+
+# execute tests
+install: pip install ansible-lint
+
+before_script:
+- ansible --version
+- ansible-lint --version
+
+script: ansible-lint .

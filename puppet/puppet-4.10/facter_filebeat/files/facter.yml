@@ -1,0 +1,11 @@
+---
+- type: log
+  enabled: true
+  paths:
+  - /opt/puppetlabs/facter/facter.json
+  fields:
+    log_source: facter
+  json.add_error_key: true
+  json.keys_under_root: true
+  tags:
+  - facter

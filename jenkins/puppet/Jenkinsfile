@@ -62,6 +62,7 @@ pipeline {
       agent { docker {
         image 'puppet/puppet-dev-tools'
         args '-u root:root -v $HOME/workspace/.pdk:/root/.pdk'
+        // args '-e HOME=$WORKSPACE -v $HOME/workspace/.pdk:$WORKSPACE/.pdk:rw,z'
       } }
 
       steps {
@@ -81,7 +82,6 @@ pipeline {
       agent { docker {
         image 'byrnedo/alpine-curl'
         args '-v $HOME/.puppetlabs:$HOME/.puppetlabs --entrypoint=\'\''
-        // args '-e HOME=$WORKSPACE -v $HOME/workspace/.pdk:$WORKSPACE/.pdk:rw,z'
       } }
 
       steps {

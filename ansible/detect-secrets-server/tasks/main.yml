@@ -26,11 +26,18 @@
   - config
   - id_rsa
 
+- name: gather the repositories in {{ org }} for scanning
+  uri:
+    url: "https://api.github.com/orgs/{{ org }}/repos?access_token={{ github_access_token }}&per_page=500"
+    method: GET
+    return_content: true
+  register: repositories_result
+
 - name: add the repositories to scan
   command: detect-secrets-server add --crontab "@hourly" git@github.com:{{ org }}/{{ item }}
   args:
     creates: "{{ detect_secrets_rootdir }}/repos/*/{{ item }}"
-  with_items: "{{ repositories }}"
+  with_items: "{{ (repositories_result.content | from_json) | json_query('[*].name') }}"
 
 - name: copy the output hook script
   template:

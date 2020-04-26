@@ -1,0 +1,43 @@
+---
+- name: dump facts for filebeat
+  hosts: all, localhost
+  strategy: free
+
+  tasks:
+  - name: ensure facter and elasticsearch gems installed
+    gem:
+      name:
+      - facter
+      - elasticsearch
+
+  - name: ensure filebeat config for facter exists
+    copy:
+      dest: '/etc/filebeat/inputs.d/facter.yml'
+      src: ?
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+    - restart filebeat
+
+  - name: collect facts
+    setup:
+    register: facts
+
+  - name: create interim facts json file
+    copy:
+      dest: /opt/puppetlabs/facter/staging.json
+      content: "{{ facts }}"
+      mode: '444'
+
+  - name: create properly formatted facts json file
+    command: "/opt/puppetlabs/puppet/bin/ruby -e \"require 'json'; parsed = JSON.parse(File.read('/opt/puppetlabs/facter/staging.json')); File.write('/opt/puppetlabs/facter/facter.json', JSON.generate(parsed))\""
+
+  - name: publish directly to elastic
+    command: "/opt/puppetlabs/puppet/bin/ruby -e \"require 'elasticsearch'; require 'json'; parsed = JSON.parse(File.read('/opt/puppetlabs/facter/staging.json')); client = Elasticsearch::Client.new(log: true); client.index(index: 'facter', type: 'facts', id: 1, body: parsed)\""
+
+  handlers:
+  - name: restart filebeat
+    service:
+      name: filebeat
+      ensure: restarted
