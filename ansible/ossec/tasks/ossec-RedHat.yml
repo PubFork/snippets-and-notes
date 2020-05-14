@@ -1,0 +1,16 @@
+---
+- name: subscribe to atomicorp repoistory
+  yum_repository:
+    name: atomic
+    description: 'CentOS / Red Hat Enterprise Linux $releasever - atomic'
+    mirrorlist: "http://updates.atomicorp.com/channels/mirrorlist/atomic/{{ ansible_facts['distribution'] | lower }}-$releasever-$basearch"
+    gpgkey:
+    - https://www.atomicorp.com/RPM-GPG-KEY.art.txt
+    - https://www.atomicorp.com/RPM-GPG-KEY.atomicorp.txt
+    gpgcheck: true
+
+- name: install ossec local package
+  dnf:
+    name:
+    - "ossec-hids-{{ ossec_version }}"
+    - "ossec-hids-server-{{ ossec_version }}"

@@ -1,0 +1,10 @@
+---
+- name: copy ossec configuration file to server
+  copy:
+    dest: '/var/ossec/etc/ossec.conf'
+    src: 'ossec_agent.xml'
+    mode: '0444'
+
+#TODO: handler
+- name: start the ossec service
+  command: /var/ossec/bin/ossec-control start

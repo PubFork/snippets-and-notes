@@ -1,0 +1,21 @@
+---
+- name: dynamically include vars based on os
+  include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: install ossec
+  include_tasks:
+    file: "ossec-{{ ansible_facts['os_family'] }}.yml"
+    apply:
+      become: true
+
+- name: configure and start ossec
+  include_tasks:
+    file: 'ossec.yml'
+    apply:
+      become: true
+
+- name: install, configure, and start cloudwatch agent on instance
+  include_tasks:
+    file: 'cloudwatch-agent.yml'
+    apply:
+      become: true

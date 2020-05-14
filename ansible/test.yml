@@ -1,0 +1,4 @@
+- name: test a role or roles from this directory
+  hosts: all
+  roles:
+  - ossec

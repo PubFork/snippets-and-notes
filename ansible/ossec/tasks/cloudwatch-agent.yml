@@ -1,0 +1,21 @@
+---
+- name: install cloudwatch agent on redhat family
+  dnf:
+    name: "{{ cloudwatch_agent_link }}"
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: install cloudwatch agent on debian family
+  apt:
+    deb: "{{ cloudwatch_agent_link }}"
+    install_recommends: false
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: copy agent configuration file to server
+  template:
+    dest: '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json'
+    src: 'amazon-cloudwatch-agent.j2'
+    mode: '0444'
+
+#TODO: handler
+- name: start the cloudwatch agent
+  command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s

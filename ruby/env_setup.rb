@@ -47,4 +47,4 @@ creds = JSON.parse(stdout)['Credentials']
 
 # output command to setup env
 puts "Execute the following command to interact with #{settings[:account]}:"
-puts "export AWS_PROFILE=#{settings[:account]} && AWS_ACCESS_KEY_ID=#{creds['AccessKeyId']} && export AWS_SECRET_ACCESS_KEY=#{creds['SecretAccessKey']} && export AWS_SESSION_TOKEN=#{creds['SessionToken']}"
+puts "export AWS_PROFILE=#{settings[:account]} && export AWS_ACCESS_KEY_ID=#{creds['AccessKeyId']} && export AWS_SECRET_ACCESS_KEY=#{creds['SecretAccessKey']} && export AWS_SESSION_TOKEN=#{creds['SessionToken']}"

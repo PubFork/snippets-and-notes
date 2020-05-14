@@ -1,0 +1,2 @@
+---
+cloudwatch_agent_link: "https://s3.amazonaws.com/amazoncloudwatch-agent/{{ ansible_facts['distribution'] | lower }}/amd64/latest/amazon-cloudwatch-agent.rpm"

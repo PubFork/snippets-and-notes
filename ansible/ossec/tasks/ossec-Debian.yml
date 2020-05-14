@@ -1,0 +1,21 @@
+---
+- name: install pre-req packages
+  apt:
+    name:
+    - gnupg
+    - apt-transport-https
+    install_recommends: false
+
+- name: add apt key for atomic
+  apt_key:
+    url: 'https://www.atomicorp.com/RPM-GPG-KEY.atomicorp.txt'
+
+- name: subscribe to atomic repository
+  apt_repository:
+    repo: "deb https://updates.atomicorp.com/channels/atomic/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }} main"
+
+- name: install ossec local package
+  apt:
+    # cannot specify version because unique trailing string for every platform (known deb/apt issue)
+    name: ossec-hids-server
+    install_recommends: false

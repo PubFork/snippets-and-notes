@@ -1,0 +1,28 @@
+{
+  "metrics": {
+    "metrics_collected": {
+      "netstat": {
+        "measurement": [
+          "tcp_established",
+          "tcp_syn_sent",
+          "tcp_close"
+        ],
+        "metrics_collection_interval": 60
+      }
+    }
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/ossec/logs/**/*.log",
+            "log_group_name": "{{ ossec_log_group }}",
+            "log_stream_name": "{local_hostname}-ossec"
+          }
+        ]
+      }
+    },
+    "log_stream_name": "{local_hostname}-cloudwatch-agent"
+  }
+}
